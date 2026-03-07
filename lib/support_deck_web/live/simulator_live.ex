@@ -349,6 +349,7 @@ defmodule SupportDeckWeb.SimulatorLive do
                   <button
                     phx-click="trip_breaker"
                     phx-value-integration={integration}
+                    data-confirm="Trip this circuit breaker?"
                     class="px-3 py-1 text-xs bg-error/15 text-error rounded hover:bg-error/25"
                   >
                     Trip
