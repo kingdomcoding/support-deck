@@ -138,30 +138,35 @@ defmodule SupportDeckWeb.GuidedTourLive do
     <div class="max-w-4xl mx-auto px-6 py-6">
       <.tech_banner patterns={["Interactive walkthrough", "PubSub events", "Domain API calls"]} />
 
-      <h1 class="text-2xl font-bold text-gray-900 mb-6">Guided Tour</h1>
+      <h1 class="text-2xl font-bold text-base-content mb-6">Guided Tour</h1>
 
       <div class="flex gap-2 mb-6">
         <button
-          :for={{s, i} <- Enum.with_index(@steps)}
+          :for={{_s, i} <- Enum.with_index(@steps)}
           phx-click="go_to"
           phx-value-step={i}
-          class={"flex-1 h-2 rounded-full transition #{if i == @current_step, do: "bg-indigo-600", else: if(i < @current_step, do: "bg-indigo-300", else: "bg-gray-200")}"}
+          class={[
+            "flex-1 h-2 rounded-full transition",
+            i == @current_step && "bg-primary",
+            i < @current_step && "bg-primary/40",
+            i > @current_step && "bg-base-300"
+          ]}
         />
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <div class="bg-base-100 rounded-lg border border-base-300 p-6 mb-6">
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-sm font-medium text-indigo-600">
+          <span class="text-sm font-medium text-primary">
             Step {@current_step + 1} of {length(@steps)}
           </span>
         </div>
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">{@step.title}</h2>
-        <p class="text-gray-600 mb-4">{@step.description}</p>
+        <h2 class="text-xl font-semibold text-base-content mb-2">{@step.title}</h2>
+        <p class="text-base-content/60 mb-4">{@step.description}</p>
 
         <div class="flex flex-wrap gap-1.5 mb-4">
           <span
             :for={p <- @step.patterns}
-            class="px-2 py-0.5 text-[11px] font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100"
+            class="px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary border border-primary/20"
           >
             {p}
           </span>
@@ -169,13 +174,13 @@ defmodule SupportDeckWeb.GuidedTourLive do
 
         <button
           phx-click="run_step"
-          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          class="px-4 py-2 bg-primary text-primary-content rounded-lg hover:bg-primary/90"
         >
           Run This Step
         </button>
 
-        <div :if={@result} class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-          <p class="text-sm text-gray-700 font-mono">{@result}</p>
+        <div :if={@result} class="mt-4 p-3 bg-base-200 rounded-lg border border-base-300">
+          <p class="text-sm text-base-content/80 font-mono">{@result}</p>
         </div>
       </div>
 
@@ -183,17 +188,17 @@ defmodule SupportDeckWeb.GuidedTourLive do
         <button
           :if={@current_step > 0}
           phx-click="prev"
-          class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+          class="px-4 py-2 text-base-content/60 border border-base-300 rounded-lg hover:bg-base-200"
         >
-          ← Previous
+          &larr; Previous
         </button>
         <div :if={@current_step == 0} />
         <button
           :if={@current_step < length(@steps) - 1}
           phx-click="next"
-          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          class="px-4 py-2 bg-primary text-primary-content rounded-lg hover:bg-primary/90"
         >
-          Next →
+          Next &rarr;
         </button>
       </div>
     </div>

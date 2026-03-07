@@ -104,62 +104,62 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
       <.tech_banner patterns={["Ash resource CRUD", "Upsert with identity"]} />
 
       <div class="flex items-center gap-4 mb-6">
-        <a href={~p"/sla"} class="text-gray-400 hover:text-gray-600">&larr; Back</a>
-        <h1 class="text-2xl font-bold text-gray-900">SLA Policies</h1>
+        <a href={~p"/sla"} class="text-base-content/40 hover:text-base-content/60">&larr; Back</a>
+        <h1 class="text-2xl font-bold text-base-content">SLA Policies</h1>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+      <div class="bg-base-100 rounded-lg border border-base-300 overflow-hidden">
+        <table class="min-w-full divide-y divide-base-300">
+          <thead class="bg-base-200">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Tier / Severity
               </th>
               <th
                 :for={sev <- @severities}
-                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"
+                class="px-4 py-3 text-center text-xs font-medium text-base-content/60 uppercase"
               >
                 {sev}
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
+          <tbody class="divide-y divide-base-300">
             <tr :for={tier <- @tiers}>
-              <td class="px-4 py-3 text-sm font-medium text-gray-900">{tier}</td>
+              <td class="px-4 py-3 text-sm font-medium text-base-content">{tier}</td>
               <td :for={sev <- @severities} class="px-4 py-3 text-center">
                 <% policy = find_policy(@policies, tier, sev) %>
                 <%= if policy do %>
                   <%= if @editing == policy.id do %>
                     <form phx-submit="save" class="space-y-1">
                       <div>
-                        <label class="text-[10px] text-gray-400">Response (min)</label>
+                        <label class="text-[10px] text-base-content/40">Response (min)</label>
                         <input
                           type="number"
                           name="first_response_minutes"
                           value={@form["first_response_minutes"]}
-                          class="w-20 px-1 py-0.5 text-xs border border-gray-300 rounded"
+                          class="w-20 px-1 py-0.5 text-xs border border-base-300 rounded bg-base-100"
                         />
                       </div>
                       <div>
-                        <label class="text-[10px] text-gray-400">Resolution (min)</label>
+                        <label class="text-[10px] text-base-content/40">Resolution (min)</label>
                         <input
                           type="number"
                           name="resolution_minutes"
                           value={@form["resolution_minutes"]}
-                          class="w-20 px-1 py-0.5 text-xs border border-gray-300 rounded"
+                          class="w-20 px-1 py-0.5 text-xs border border-base-300 rounded bg-base-100"
                         />
                       </div>
                       <div class="flex gap-1">
                         <button
                           type="submit"
-                          class="px-2 py-0.5 text-[10px] bg-indigo-600 text-white rounded"
+                          class="px-2 py-0.5 text-[10px] bg-primary text-primary-content rounded"
                         >
                           Save
                         </button>
                         <button
                           type="button"
                           phx-click="cancel_edit"
-                          class="px-2 py-0.5 text-[10px] border border-gray-300 rounded"
+                          class="px-2 py-0.5 text-[10px] border border-base-300 rounded"
                         >
                           Cancel
                         </button>
@@ -169,12 +169,12 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                     <button
                       phx-click="edit"
                       phx-value-id={policy.id}
-                      class="text-left hover:bg-gray-50 p-1 rounded w-full"
+                      class="text-left hover:bg-base-200 p-1 rounded w-full"
                     >
-                      <p class="text-sm font-medium text-gray-900">
+                      <p class="text-sm font-medium text-base-content">
                         {policy.first_response_minutes}m
                       </p>
-                      <p class="text-[10px] text-gray-400">
+                      <p class="text-[10px] text-base-content/40">
                         resolve: {policy.resolution_minutes || "—"}m
                       </p>
                     </button>
@@ -184,7 +184,7 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                     phx-click="create_default"
                     phx-value-tier={tier}
                     phx-value-severity={sev}
-                    class="px-2 py-1 text-[10px] text-gray-400 border border-dashed border-gray-300 rounded hover:border-indigo-300 hover:text-indigo-600"
+                    class="px-2 py-1 text-[10px] text-base-content/40 border border-dashed border-base-300 rounded hover:border-primary/30 hover:text-primary"
                   >
                     + Add
                   </button>

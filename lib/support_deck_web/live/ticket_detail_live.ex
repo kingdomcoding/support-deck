@@ -98,50 +98,52 @@ defmodule SupportDeckWeb.TicketDetailLive do
       ]} />
 
       <div class="flex items-center gap-4 mb-6">
-        <a href={~p"/tickets"} class="text-gray-400 hover:text-gray-600">← Back</a>
-        <h1 class="text-2xl font-bold text-gray-900">{@ticket.subject}</h1>
+        <a href={~p"/tickets"} class="text-base-content/40 hover:text-base-content/60">&larr; Back</a>
+        <h1 class="text-2xl font-bold text-base-content">{@ticket.subject}</h1>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-          <div class="bg-white rounded-lg border border-gray-200 p-4">
-            <h3 class="font-medium text-gray-900 mb-2">Details</h3>
+          <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+            <h3 class="font-medium text-base-content mb-2">Details</h3>
             <dl class="grid grid-cols-2 gap-2 text-sm">
-              <dt class="text-gray-500">Status</dt>
+              <dt class="text-base-content/60">Status</dt>
               <dd>
-                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                <span class="px-2 py-1 text-xs rounded-full bg-info/15 text-info">
                   {@ticket.state}
                 </span>
               </dd>
-              <dt class="text-gray-500">Severity</dt>
+              <dt class="text-base-content/60">Severity</dt>
               <dd>{@ticket.severity}</dd>
-              <dt class="text-gray-500">Source</dt>
+              <dt class="text-base-content/60">Source</dt>
               <dd>{@ticket.source}</dd>
-              <dt class="text-gray-500">Tier</dt>
+              <dt class="text-base-content/60">Tier</dt>
               <dd>{@ticket.subscription_tier}</dd>
-              <dt class="text-gray-500">Assignee</dt>
+              <dt class="text-base-content/60">Assignee</dt>
               <dd>{@ticket.assignee || "Unassigned"}</dd>
-              <dt class="text-gray-500">Customer</dt>
+              <dt class="text-base-content/60">Customer</dt>
               <dd>{@ticket.customer_email || "—"}</dd>
             </dl>
           </div>
 
-          <div :if={@ticket.body} class="bg-white rounded-lg border border-gray-200 p-4">
-            <h3 class="font-medium text-gray-900 mb-2">Description</h3>
-            <p class="text-sm text-gray-700 whitespace-pre-wrap">{@ticket.body}</p>
+          <div :if={@ticket.body} class="bg-base-100 rounded-lg border border-base-300 p-4">
+            <h3 class="font-medium text-base-content mb-2">Description</h3>
+            <p class="text-sm text-base-content/80 whitespace-pre-wrap">{@ticket.body}</p>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 p-4">
-            <h3 class="font-medium text-gray-900 mb-4">Activity Timeline</h3>
-            <div :if={@activities == []} class="text-sm text-gray-500">No activity yet.</div>
+          <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+            <h3 class="font-medium text-base-content mb-4">Activity Timeline</h3>
+            <div :if={@activities == []} class="text-sm text-base-content/60">No activity yet.</div>
             <div :for={activity <- @activities} class="flex gap-3 mb-3 last:mb-0">
-              <div class="w-2 h-2 mt-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
+              <div class="w-2 h-2 mt-1.5 rounded-full bg-primary flex-shrink-0" />
               <div>
-                <p class="text-sm text-gray-700">
+                <p class="text-sm text-base-content/80">
                   <span class="font-medium">{activity.actor}</span> — {activity.action}
-                  <span :if={activity.to_value} class="text-gray-500">→ {activity.to_value}</span>
+                  <span :if={activity.to_value} class="text-base-content/60">
+                    &rarr; {activity.to_value}
+                  </span>
                 </p>
-                <p class="text-xs text-gray-400">
+                <p class="text-xs text-base-content/40">
                   {Calendar.strftime(activity.inserted_at, "%Y-%m-%d %H:%M")}
                 </p>
               </div>
@@ -150,29 +152,29 @@ defmodule SupportDeckWeb.TicketDetailLive do
         </div>
 
         <div class="space-y-6">
-          <div class="bg-white rounded-lg border border-gray-200 p-4">
-            <h3 class="font-medium text-gray-900 mb-3">Actions</h3>
+          <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+            <h3 class="font-medium text-base-content mb-3">Actions</h3>
             <div class="space-y-2">
               <button
                 :for={action <- available_transitions(@ticket.state)}
                 phx-click="transition"
                 phx-value-action={action}
-                class="w-full px-3 py-2 text-sm text-left border border-gray-200 rounded-lg hover:bg-gray-50"
+                class="w-full px-3 py-2 text-sm text-left border border-base-300 rounded-lg hover:bg-base-200"
               >
                 {humanize_action(action)}
               </button>
             </div>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 p-4">
-            <h3 class="font-medium text-gray-900 mb-3">AI Triage</h3>
+          <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+            <h3 class="font-medium text-base-content mb-3">AI Triage</h3>
             <button
               phx-click="trigger_triage"
-              class="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              class="w-full px-3 py-2 text-sm bg-secondary text-secondary-content rounded-lg hover:bg-secondary/90"
             >
               Run AI Triage
             </button>
-            <div :for={result <- @triage_results} class="mt-3 p-2 bg-gray-50 rounded text-sm">
+            <div :for={result <- @triage_results} class="mt-3 p-2 bg-base-200 rounded text-sm">
               <p>Category: {result.predicted_category || "—"}</p>
               <p>Severity: {result.predicted_severity || "—"}</p>
               <p>Confidence: {result.confidence && Float.round(result.confidence * 100, 1)}%</p>

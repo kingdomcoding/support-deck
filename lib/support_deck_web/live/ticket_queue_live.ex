@@ -81,10 +81,10 @@ defmodule SupportDeckWeb.TicketQueueLive do
       ]} />
 
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Tickets</h1>
+        <h1 class="text-2xl font-bold text-base-content">Tickets</h1>
         <a
           href={~p"/simulator"}
-          class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
         >
           + New Ticket
         </a>
@@ -97,12 +97,15 @@ defmodule SupportDeckWeb.TicketQueueLive do
             name="search"
             value={@search}
             placeholder="Search tickets..."
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100 text-base-content"
             phx-debounce="300"
           />
         </form>
         <form phx-change="filter_status">
-          <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+          <select
+            name="status"
+            class="px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100 text-base-content"
+          >
             <option value="">All Open</option>
             <option value="new">New</option>
             <option value="triaging">Triaging</option>
@@ -115,37 +118,49 @@ defmodule SupportDeckWeb.TicketQueueLive do
         </form>
       </div>
 
-      <div :if={@tickets == []} class="text-center py-12 bg-white rounded-lg border border-gray-200">
-        <p class="text-gray-500">No tickets found.</p>
+      <div
+        :if={@tickets == []}
+        class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
+      >
+        <p class="text-base-content/60">No tickets found.</p>
         <a
           href={~p"/simulator"}
-          class="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block"
+          class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
         >
-          Create your first ticket in the Simulator →
+          Create your first ticket in the Simulator
         </a>
       </div>
 
-      <div :if={@tickets != []} class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+      <div
+        :if={@tickets != []}
+        class="bg-base-100 rounded-lg border border-base-300 overflow-hidden"
+      >
+        <table class="min-w-full divide-y divide-base-300">
+          <thead class="bg-base-200">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Subject
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Status
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Severity
               </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Source
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Assignee
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr :for={ticket <- @tickets} class="hover:bg-gray-50">
+          <tbody class="divide-y divide-base-300">
+            <tr :for={ticket <- @tickets} class="hover:bg-base-200">
               <td class="px-4 py-3">
                 <a
                   href={~p"/tickets/#{ticket.id}"}
-                  class="text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+                  class="text-primary hover:text-primary/80 font-medium text-sm"
                 >
                   {ticket.subject}
                 </a>
@@ -156,8 +171,8 @@ defmodule SupportDeckWeb.TicketQueueLive do
               <td class="px-4 py-3">
                 <.severity_badge severity={ticket.severity} />
               </td>
-              <td class="px-4 py-3 text-sm text-gray-500">{ticket.source}</td>
-              <td class="px-4 py-3 text-sm text-gray-500">{ticket.assignee || "—"}</td>
+              <td class="px-4 py-3 text-sm text-base-content/60">{ticket.source}</td>
+              <td class="px-4 py-3 text-sm text-base-content/60">{ticket.assignee || "—"}</td>
             </tr>
           </tbody>
         </table>
@@ -167,16 +182,17 @@ defmodule SupportDeckWeb.TicketQueueLive do
   end
 
   defp status_badge(assigns) do
-    color = case assigns.status do
-      :new -> "bg-blue-100 text-blue-700"
-      :triaging -> "bg-yellow-100 text-yellow-700"
-      :assigned -> "bg-green-100 text-green-700"
-      :waiting_on_customer -> "bg-orange-100 text-orange-700"
-      :escalated -> "bg-red-100 text-red-700"
-      :resolved -> "bg-gray-100 text-gray-700"
-      :closed -> "bg-gray-100 text-gray-500"
-      _ -> "bg-gray-100 text-gray-500"
-    end
+    color =
+      case assigns.status do
+        :new -> "bg-info/15 text-info"
+        :triaging -> "bg-warning/15 text-warning"
+        :assigned -> "bg-success/15 text-success"
+        :waiting_on_customer -> "bg-warning/15 text-warning"
+        :escalated -> "bg-error/15 text-error"
+        :resolved -> "bg-base-content/10 text-base-content/60"
+        :closed -> "bg-base-content/5 text-base-content/40"
+        _ -> "bg-base-content/5 text-base-content/40"
+      end
 
     assigns = assign(assigns, :color, color)
 
@@ -186,13 +202,14 @@ defmodule SupportDeckWeb.TicketQueueLive do
   end
 
   defp severity_badge(assigns) do
-    color = case assigns.severity do
-      :critical -> "bg-red-100 text-red-700"
-      :high -> "bg-orange-100 text-orange-700"
-      :medium -> "bg-yellow-100 text-yellow-700"
-      :low -> "bg-gray-100 text-gray-600"
-      _ -> "bg-gray-100 text-gray-500"
-    end
+    color =
+      case assigns.severity do
+        :critical -> "bg-error/15 text-error"
+        :high -> "bg-warning/15 text-warning"
+        :medium -> "bg-info/15 text-info"
+        :low -> "bg-base-content/10 text-base-content/60"
+        _ -> "bg-base-content/5 text-base-content/40"
+      end
 
     assigns = assign(assigns, :color, color)
 

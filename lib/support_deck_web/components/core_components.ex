@@ -497,12 +497,12 @@ defmodule SupportDeckWeb.CoreComponents do
 
   def tech_banner(assigns) do
     ~H"""
-    <div class="mb-6 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
-      <div :if={@description} class="text-sm text-gray-600 mb-2">{@description}</div>
+    <div class="mb-6 px-4 py-3 bg-base-200 border border-base-300 rounded-lg">
+      <div :if={@description} class="text-sm text-base-content/60 mb-2">{@description}</div>
       <div class="flex flex-wrap gap-1.5">
         <span
           :for={pattern <- @patterns}
-          class="px-2 py-0.5 text-[11px] font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100"
+          class="px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary border border-primary/20"
         >
           {pattern}
         </span>

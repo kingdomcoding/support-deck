@@ -41,17 +41,17 @@ defmodule SupportDeckWeb.SLADashboardLive do
       <.tech_banner patterns={["AshOban triggers", "SLA Buddy pattern", "Named read actions"]} />
 
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">SLA Dashboard</h1>
+        <h1 class="text-2xl font-bold text-base-content">SLA Dashboard</h1>
         <div class="flex gap-3">
           <button
             phx-click="refresh"
-            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            class="px-3 py-2 text-sm border border-base-300 rounded-lg hover:bg-base-200"
           >
             Refresh
           </button>
           <a
             href={~p"/sla/policies"}
-            class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             Manage Policies
           </a>
@@ -59,63 +59,69 @@ defmodule SupportDeckWeb.SLADashboardLive do
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Breaching Tickets</p>
-          <p class="text-2xl font-bold text-red-600">{length(@breaching_tickets)}</p>
+        <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+          <p class="text-sm text-base-content/60">Breaching Tickets</p>
+          <p class="text-2xl font-bold text-error">{length(@breaching_tickets)}</p>
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Active Policies</p>
-          <p class="text-2xl font-bold text-blue-600">
+        <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+          <p class="text-sm text-base-content/60">Active Policies</p>
+          <p class="text-2xl font-bold text-info">
             {length(Enum.filter(@policies, & &1.enabled))}
           </p>
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Total Policies</p>
-          <p class="text-2xl font-bold text-gray-600">{length(@policies)}</p>
+        <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+          <p class="text-sm text-base-content/60">Total Policies</p>
+          <p class="text-2xl font-bold text-base-content/60">{length(@policies)}</p>
         </div>
       </div>
 
-      <h2 class="text-xl font-semibold text-gray-900 mb-4">Breaching Tickets</h2>
+      <h2 class="text-xl font-semibold text-base-content mb-4">Breaching Tickets</h2>
 
       <div
         :if={@breaching_tickets == []}
-        class="text-center py-12 bg-white rounded-lg border border-gray-200"
+        class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
       >
-        <p class="text-gray-500">No SLA breaches. All clear.</p>
+        <p class="text-base-content/60">No SLA breaches. All clear.</p>
       </div>
 
       <div
         :if={@breaching_tickets != []}
-        class="bg-white rounded-lg border border-gray-200 overflow-hidden"
+        class="bg-base-100 rounded-lg border border-base-300 overflow-hidden"
       >
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-base-300">
+          <thead class="bg-base-200">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Subject
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Severity
               </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tier</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Tier
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Status
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Time Since Breach
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr :for={ticket <- @breaching_tickets} class="hover:bg-gray-50">
+          <tbody class="divide-y divide-base-300">
+            <tr :for={ticket <- @breaching_tickets} class="hover:bg-base-200">
               <td class="px-4 py-3">
                 <a
                   href={~p"/tickets/#{ticket.id}"}
-                  class="text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+                  class="text-primary hover:text-primary/80 font-medium text-sm"
                 >
                   {ticket.subject}
                 </a>
               </td>
-              <td class="px-4 py-3 text-sm text-gray-500">{ticket.severity}</td>
-              <td class="px-4 py-3 text-sm text-gray-500">{ticket.subscription_tier}</td>
-              <td class="px-4 py-3 text-sm text-gray-500">{ticket.state}</td>
-              <td class="px-4 py-3 text-sm text-red-600 font-medium">{time_since_breach(ticket)}</td>
+              <td class="px-4 py-3 text-sm text-base-content/60">{ticket.severity}</td>
+              <td class="px-4 py-3 text-sm text-base-content/60">{ticket.subscription_tier}</td>
+              <td class="px-4 py-3 text-sm text-base-content/60">{ticket.state}</td>
+              <td class="px-4 py-3 text-sm text-error font-medium">{time_since_breach(ticket)}</td>
             </tr>
           </tbody>
         </table>

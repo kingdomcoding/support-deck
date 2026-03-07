@@ -33,17 +33,17 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
       <.tech_banner patterns={["Circuit breaker", "GenServer", "ETS state"]} />
 
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Integration Health</h1>
+        <h1 class="text-2xl font-bold text-base-content">Integration Health</h1>
         <div class="flex gap-3">
           <button
             phx-click="refresh"
-            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            class="px-3 py-2 text-sm border border-base-300 rounded-lg hover:bg-base-200"
           >
             Refresh
           </button>
           <a
             href={~p"/settings"}
-            class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             Configure Credentials
           </a>
@@ -51,24 +51,27 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div :for={{name, status} <- @statuses} class="bg-white rounded-lg border border-gray-200 p-6">
+        <div
+          :for={{name, status} <- @statuses}
+          class="bg-base-100 rounded-lg border border-base-300 p-6"
+        >
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 capitalize">{name}</h3>
+            <h3 class="text-lg font-semibold text-base-content capitalize">{name}</h3>
             <.state_indicator state={status.state} />
           </div>
 
           <dl class="space-y-2 text-sm">
             <div class="flex justify-between">
-              <dt class="text-gray-500">State</dt>
+              <dt class="text-base-content/60">State</dt>
               <dd class="font-medium">{format_state(status.state)}</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-gray-500">Failures</dt>
+              <dt class="text-base-content/60">Failures</dt>
               <dd class="font-medium">{status.failures}</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-gray-500">Last Failure</dt>
-              <dd class="font-medium text-gray-600">{format_last_failure(status.last_failure_at)}</dd>
+              <dt class="text-base-content/60">Last Failure</dt>
+              <dd class="font-medium text-base-content/60">{format_last_failure(status.last_failure_at)}</dd>
             </div>
           </dl>
         </div>
@@ -80,10 +83,10 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
   defp state_indicator(assigns) do
     color =
       case assigns.state do
-        :closed -> "bg-green-500"
-        :open -> "bg-red-500"
-        :half_open -> "bg-yellow-500"
-        _ -> "bg-gray-400"
+        :closed -> "bg-success"
+        :open -> "bg-error"
+        :half_open -> "bg-warning"
+        _ -> "bg-base-content/40"
       end
 
     assigns = assign(assigns, :color, color)

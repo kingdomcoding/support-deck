@@ -113,13 +113,21 @@ defmodule SupportDeckWeb.SettingsLive do
     <div class="max-w-4xl mx-auto px-6 py-6">
       <.tech_banner patterns={["AES-256-GCM vault", "ETS cache", "GenServer resolver"]} />
 
-      <h1 class="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+      <h1 class="text-2xl font-bold text-base-content mb-6">Settings</h1>
 
       <div
         :if={@test_result}
-        class={"mb-6 p-4 rounded-lg border #{if elem(@test_result, 0) == :ok, do: "bg-green-50 border-green-200", else: "bg-red-50 border-red-200"}"}
+        class={[
+          "mb-6 p-4 rounded-lg border",
+          elem(@test_result, 0) == :ok && "bg-success/10 border-success/30",
+          elem(@test_result, 0) != :ok && "bg-error/10 border-error/30"
+        ]}
       >
-        <p class={"text-sm #{if elem(@test_result, 0) == :ok, do: "text-green-700", else: "text-red-700"}"}>
+        <p class={[
+          "text-sm",
+          elem(@test_result, 0) == :ok && "text-success",
+          elem(@test_result, 0) != :ok && "text-error"
+        ]}>
           {elem(@test_result, 1)}
         </p>
       </div>
@@ -127,15 +135,15 @@ defmodule SupportDeckWeb.SettingsLive do
       <div class="space-y-6">
         <div
           :for={{integration, keys} <- @integrations}
-          class="bg-white rounded-lg border border-gray-200 p-6"
+          class="bg-base-100 rounded-lg border border-base-300 p-6"
         >
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-gray-900 capitalize">{integration}</h2>
+            <h2 class="text-lg font-semibold text-base-content capitalize">{integration}</h2>
             <button
               phx-click="test_connection"
               phx-value-integration={integration}
               disabled={@testing == integration}
-              class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              class="px-3 py-1.5 text-sm border border-base-300 rounded-lg hover:bg-base-200 disabled:opacity-50"
             >
               {if @testing == integration, do: "Testing...", else: "Test Connection"}
             </button>
@@ -146,17 +154,17 @@ defmodule SupportDeckWeb.SettingsLive do
               <% existing = find_credential(@credentials, integration, key_name) %>
               <div class="flex items-end gap-3">
                 <div class="flex-1">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                  <label class="block text-sm font-medium text-base-content/80 mb-1">{label}</label>
                   <div :if={existing} class="flex items-center gap-2 mb-1">
-                    <span class="text-xs text-gray-400">{existing.value_hint}</span>
-                    <span class={"px-1.5 py-0.5 text-[10px] rounded #{status_class(existing.last_test_status)}"}>
+                    <span class="text-xs text-base-content/40">{existing.value_hint}</span>
+                    <span class={["px-1.5 py-0.5 text-[10px] rounded", status_class(existing.last_test_status)]}>
                       {existing.last_test_status}
                     </span>
                     <button
                       phx-click="delete_credential"
                       phx-value-id={existing.id}
                       data-confirm="Delete this credential?"
-                      class="text-[10px] text-red-500 hover:text-red-700"
+                      class="text-[10px] text-error hover:text-error/80"
                     >
                       delete
                     </button>
@@ -168,11 +176,11 @@ defmodule SupportDeckWeb.SettingsLive do
                       type="password"
                       name="value"
                       placeholder={if existing, do: "Update value...", else: "Enter value..."}
-                      class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      class="flex-1 px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                     />
                     <button
                       type="submit"
-                      class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                      class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
                     >
                       Save
                     </button>
@@ -187,7 +195,7 @@ defmodule SupportDeckWeb.SettingsLive do
     """
   end
 
-  defp status_class(:ok), do: "bg-green-100 text-green-700"
-  defp status_class(:error), do: "bg-red-100 text-red-700"
-  defp status_class(_), do: "bg-gray-100 text-gray-500"
+  defp status_class(:ok), do: "bg-success/15 text-success"
+  defp status_class(:error), do: "bg-error/15 text-error"
+  defp status_class(_), do: "bg-base-content/10 text-base-content/60"
 end

@@ -142,38 +142,38 @@ defmodule SupportDeckWeb.RulesLive do
       <.tech_banner patterns={["Ash CRUD actions", "Rule engine", "Condition matching"]} />
 
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Rules Engine</h1>
+        <h1 class="text-2xl font-bold text-base-content">Rules Engine</h1>
         <a
           :if={@mode == :index}
           href={~p"/rules/new"}
-          class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
         >
           + New Rule
         </a>
       </div>
 
       <%= if @mode in [:new, :edit] do %>
-        <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">
+        <div class="bg-base-100 rounded-lg border border-base-300 p-6 mb-6">
+          <h2 class="text-lg font-semibold text-base-content mb-4">
             {if @mode == :new, do: "New Rule", else: "Edit Rule"}
           </h2>
           <form phx-submit="save" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Name</label>
                 <input
                   type="text"
                   name="name"
                   value={@form_data["name"]}
                   required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Trigger</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Trigger</label>
                 <select
                   name="trigger"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 >
                   <option
                     :for={t <- @triggers}
@@ -186,47 +186,51 @@ defmodule SupportDeckWeb.RulesLive do
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label class="block text-sm font-medium text-base-content/80 mb-1">Description</label>
               <input
                 type="text"
                 name="description"
                 value={@form_data["description"]}
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
               />
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Conditions (JSON)</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">
+                  Conditions (JSON)
+                </label>
                 <textarea
                   name="conditions"
                   rows="3"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm font-mono bg-base-100"
                 >{@form_data["conditions"]}</textarea>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Actions (JSON)</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">
+                  Actions (JSON)
+                </label>
                 <textarea
                   name="actions_list"
                   rows="3"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm font-mono bg-base-100"
                 >{@form_data["actions_list"]}</textarea>
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Priority</label>
                 <input
                   type="number"
                   name="priority"
                   value={@form_data["priority"]}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Enabled</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Enabled</label>
                 <select
                   name="enabled"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 >
                   <option value="true" selected={@form_data["enabled"] == "true"}>Yes</option>
                   <option value="false" selected={@form_data["enabled"] == "false"}>No</option>
@@ -236,13 +240,13 @@ defmodule SupportDeckWeb.RulesLive do
             <div class="flex gap-3">
               <button
                 type="submit"
-                class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                class="px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
               >
                 Save
               </button>
               <a
                 href={~p"/rules"}
-                class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                class="px-4 py-2 text-sm border border-base-300 rounded-lg hover:bg-base-200"
               >
                 Cancel
               </a>
@@ -253,12 +257,12 @@ defmodule SupportDeckWeb.RulesLive do
 
       <div
         :if={@rules == [] && @mode == :index}
-        class="text-center py-12 bg-white rounded-lg border border-gray-200"
+        class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
       >
-        <p class="text-gray-500">No rules configured yet.</p>
+        <p class="text-base-content/60">No rules configured yet.</p>
         <a
           href={~p"/rules/new"}
-          class="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block"
+          class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
         >
           Create your first rule
         </a>
@@ -266,35 +270,47 @@ defmodule SupportDeckWeb.RulesLive do
 
       <div
         :if={@rules != [] && @mode == :index}
-        class="bg-white rounded-lg border border-gray-200 overflow-hidden"
+        class="bg-base-100 rounded-lg border border-base-300 overflow-hidden"
       >
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-base-300">
+          <thead class="bg-base-200">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trigger</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Name
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Trigger
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Priority
               </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Status
+              </th>
+              <th class="px-4 py-3 text-right text-xs font-medium text-base-content/60 uppercase">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr :for={rule <- @rules} class="hover:bg-gray-50">
+          <tbody class="divide-y divide-base-300">
+            <tr :for={rule <- @rules} class="hover:bg-base-200">
               <td class="px-4 py-3">
-                <p class="text-sm font-medium text-gray-900">{rule.name}</p>
-                <p :if={rule.description} class="text-xs text-gray-500">{rule.description}</p>
+                <p class="text-sm font-medium text-base-content">{rule.name}</p>
+                <p :if={rule.description} class="text-xs text-base-content/60">
+                  {rule.description}
+                </p>
               </td>
-              <td class="px-4 py-3 text-sm text-gray-500">{rule.trigger}</td>
-              <td class="px-4 py-3 text-sm text-gray-500">{rule.priority}</td>
+              <td class="px-4 py-3 text-sm text-base-content/60">{rule.trigger}</td>
+              <td class="px-4 py-3 text-sm text-base-content/60">{rule.priority}</td>
               <td class="px-4 py-3">
                 <button
                   phx-click="toggle"
                   phx-value-id={rule.id}
-                  class={"px-2 py-1 text-xs rounded-full #{if rule.enabled, do: "bg-green-100 text-green-700", else: "bg-gray-100 text-gray-500"}"}
+                  class={[
+                    "px-2 py-1 text-xs rounded-full",
+                    rule.enabled && "bg-success/15 text-success",
+                    !rule.enabled && "bg-base-content/10 text-base-content/60"
+                  ]}
                 >
                   {if rule.enabled, do: "Enabled", else: "Disabled"}
                 </button>
@@ -302,7 +318,7 @@ defmodule SupportDeckWeb.RulesLive do
               <td class="px-4 py-3 text-right">
                 <a
                   href={~p"/rules/#{rule.id}/edit"}
-                  class="text-sm text-indigo-600 hover:text-indigo-700 mr-3"
+                  class="text-sm text-primary hover:text-primary/80 mr-3"
                 >
                   Edit
                 </a>
@@ -310,7 +326,7 @@ defmodule SupportDeckWeb.RulesLive do
                   phx-click="delete"
                   phx-value-id={rule.id}
                   data-confirm="Delete this rule?"
-                  class="text-sm text-red-600 hover:text-red-700"
+                  class="text-sm text-error hover:text-error/80"
                 >
                   Delete
                 </button>

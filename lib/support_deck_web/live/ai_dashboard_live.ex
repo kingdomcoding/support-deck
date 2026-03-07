@@ -61,17 +61,17 @@ defmodule SupportDeckWeb.AIDashboardLive do
       <.tech_banner patterns={["Prompt-backed actions", "Oban workers", "AI metrics"]} />
 
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">AI Dashboard</h1>
+        <h1 class="text-2xl font-bold text-base-content">AI Dashboard</h1>
         <div class="flex gap-3">
           <button
             phx-click="refresh"
-            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            class="px-3 py-2 text-sm border border-base-300 rounded-lg hover:bg-base-200"
           >
             Refresh
           </button>
           <a
             href={~p"/simulator"}
-            class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             Trigger Triage
           </a>
@@ -79,61 +79,75 @@ defmodule SupportDeckWeb.AIDashboardLive do
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Total Triages (7d)</p>
-          <p class="text-2xl font-bold text-purple-600">{@stats.total}</p>
+        <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+          <p class="text-sm text-base-content/60">Total Triages (7d)</p>
+          <p class="text-2xl font-bold text-secondary">{@stats.total}</p>
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Avg Confidence</p>
-          <p class="text-2xl font-bold text-purple-600">{@stats.avg_confidence}%</p>
+        <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+          <p class="text-sm text-base-content/60">Avg Confidence</p>
+          <p class="text-2xl font-bold text-secondary">{@stats.avg_confidence}%</p>
         </div>
       </div>
 
-      <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Triage Results</h2>
+      <h2 class="text-xl font-semibold text-base-content mb-4">Recent Triage Results</h2>
 
-      <div :if={@results == []} class="text-center py-12 bg-white rounded-lg border border-gray-200">
-        <p class="text-gray-500">No triage results yet.</p>
+      <div
+        :if={@results == []}
+        class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
+      >
+        <p class="text-base-content/60">No triage results yet.</p>
         <a
           href={~p"/simulator"}
-          class="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block"
+          class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
         >
           Run a triage in the Simulator
         </a>
       </div>
 
-      <div :if={@results != []} class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+      <div
+        :if={@results != []}
+        class="bg-base-100 rounded-lg border border-base-300 overflow-hidden"
+      >
+        <table class="min-w-full divide-y divide-base-300">
+          <thead class="bg-base-200">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Ticket
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Category
               </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Severity
               </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Confidence
               </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                Created
+              </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr :for={result <- @results} class="hover:bg-gray-50">
+          <tbody class="divide-y divide-base-300">
+            <tr :for={result <- @results} class="hover:bg-base-200">
               <td class="px-4 py-3">
                 <a
                   href={~p"/tickets/#{result.ticket_id}"}
-                  class="text-indigo-600 hover:text-indigo-700 text-sm font-mono"
+                  class="text-primary hover:text-primary/80 text-sm font-mono"
                 >
                   {String.slice(result.ticket_id, 0..7)}...
                 </a>
               </td>
-              <td class="px-4 py-3 text-sm text-gray-700">{result.predicted_category || "—"}</td>
-              <td class="px-4 py-3 text-sm text-gray-700">{result.predicted_severity || "—"}</td>
-              <td class="px-4 py-3 text-sm text-gray-700">
+              <td class="px-4 py-3 text-sm text-base-content/80">
+                {result.predicted_category || "—"}
+              </td>
+              <td class="px-4 py-3 text-sm text-base-content/80">
+                {result.predicted_severity || "—"}
+              </td>
+              <td class="px-4 py-3 text-sm text-base-content/80">
                 {if result.confidence, do: "#{Float.round(result.confidence * 100, 1)}%", else: "—"}
               </td>
-              <td class="px-4 py-3 text-sm text-gray-500">
+              <td class="px-4 py-3 text-sm text-base-content/60">
                 {Calendar.strftime(result.inserted_at, "%Y-%m-%d %H:%M")}
               </td>
             </tr>

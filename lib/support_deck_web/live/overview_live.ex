@@ -65,14 +65,14 @@ defmodule SupportDeckWeb.OverviewLive do
       />
 
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">SupportDeck</h1>
-        <p class="mt-2 text-gray-600">Internal support tooling platform built with Ash Framework</p>
+        <h1 class="text-3xl font-bold text-base-content">SupportDeck</h1>
+        <p class="mt-2 text-base-content/60">Internal support tooling platform built with Ash Framework</p>
       </div>
 
       <div class="mb-6">
         <a
           href={~p"/tour"}
-          class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-content rounded-lg hover:bg-primary/90"
         >
           <.icon name="hero-map" class="size-5" /> Take the Guided Tour
         </a>
@@ -85,7 +85,7 @@ defmodule SupportDeckWeb.OverviewLive do
         <.stat_card label="AI Triages (24h)" value={@stats.ai_triages_24h} color="purple" />
       </div>
 
-      <h2 class="text-xl font-semibold text-gray-900 mb-4">Feature Map</h2>
+      <h2 class="text-xl font-semibold text-base-content mb-4">Feature Map</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <.feature_card
           title="Ticket Queue"
@@ -146,19 +146,19 @@ defmodule SupportDeckWeb.OverviewLive do
 
   defp stat_card(assigns) do
     color_classes = %{
-      "blue" => "text-blue-600",
-      "red" => "text-red-600",
-      "green" => "text-green-600",
-      "purple" => "text-purple-600"
+      "blue" => "text-info",
+      "red" => "text-error",
+      "green" => "text-success",
+      "purple" => "text-secondary"
     }
 
     assigns =
-      assign(assigns, :color_class, Map.get(color_classes, assigns.color, "text-gray-600"))
+      assign(assigns, :color_class, Map.get(color_classes, assigns.color, "text-base-content/60"))
 
     ~H"""
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-      <p class="text-sm text-gray-500">{@label}</p>
-      <p class={"text-2xl font-bold #{@color_class}"}>{@value}</p>
+    <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+      <p class="text-sm text-base-content/60">{@label}</p>
+      <p class={["text-2xl font-bold", @color_class]}>{@value}</p>
     </div>
     """
   end
@@ -172,14 +172,14 @@ defmodule SupportDeckWeb.OverviewLive do
     ~H"""
     <a
       href={@href}
-      class="block bg-white rounded-lg border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition"
+      class="block bg-base-100 rounded-lg border border-base-300 p-4 hover:border-primary/30 hover:shadow-sm transition"
     >
-      <h3 class="font-medium text-gray-900">{@title}</h3>
-      <p class="text-sm text-gray-500 mt-1">{@description}</p>
+      <h3 class="font-medium text-base-content">{@title}</h3>
+      <p class="text-sm text-base-content/60 mt-1">{@description}</p>
       <div class="flex flex-wrap gap-1 mt-2">
         <span
           :for={p <- @patterns}
-          class="px-2 py-0.5 text-[11px] rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100"
+          class="px-2 py-0.5 text-[11px] rounded-full bg-primary/10 text-primary border border-primary/20"
         >
           {p}
         </span>

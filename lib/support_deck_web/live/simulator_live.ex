@@ -141,54 +141,62 @@ defmodule SupportDeckWeb.SimulatorLive do
     <div class="max-w-6xl mx-auto px-6 py-6">
       <.tech_banner patterns={["Dev tooling", "Webhook pipeline", "Oban workers", "Circuit breaker"]} />
 
-      <h1 class="text-2xl font-bold text-gray-900 mb-6">Simulator</h1>
+      <h1 class="text-2xl font-bold text-base-content mb-6">Simulator</h1>
 
       <div
         :if={@result}
-        class={"mb-6 p-4 rounded-lg border #{if elem(@result, 0) == :ok, do: "bg-green-50 border-green-200", else: "bg-red-50 border-red-200"}"}
+        class={[
+          "mb-6 p-4 rounded-lg border",
+          elem(@result, 0) == :ok && "bg-success/10 border-success/30",
+          elem(@result, 0) != :ok && "bg-error/10 border-error/30"
+        ]}
       >
-        <p class={"text-sm #{if elem(@result, 0) == :ok, do: "text-green-700", else: "text-red-700"}"}>
+        <p class={[
+          "text-sm",
+          elem(@result, 0) == :ok && "text-success",
+          elem(@result, 0) != :ok && "text-error"
+        ]}>
           {elem(@result, 1)}
         </p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Create Ticket</h2>
+        <div class="bg-base-100 rounded-lg border border-base-300 p-6">
+          <h2 class="text-lg font-semibold text-base-content mb-4">Create Ticket</h2>
           <form phx-submit="create_ticket" class="space-y-3">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+              <label class="block text-sm font-medium text-base-content/80 mb-1">Subject</label>
               <input
                 type="text"
                 name="subject"
                 value={@ticket_form["subject"]}
                 required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Body</label>
+              <label class="block text-sm font-medium text-base-content/80 mb-1">Body</label>
               <textarea
                 name="body"
                 rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
               >{@ticket_form["body"]}</textarea>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Source</label>
                 <select
                   name="source"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 >
                   <option :for={s <- [:manual, :front, :slack]} value={s}>{s}</option>
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Severity</label>
                 <select
                   name="severity"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 >
                   <option
                     :for={s <- [:low, :medium, :high, :critical]}
@@ -202,10 +210,10 @@ defmodule SupportDeckWeb.SimulatorLive do
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tier</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Tier</label>
                 <select
                   name="subscription_tier"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 >
                   <option
                     :for={t <- [:free, :pro, :team, :enterprise]}
@@ -217,28 +225,30 @@ defmodule SupportDeckWeb.SimulatorLive do
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">
+                  Customer Email
+                </label>
                 <input
                   type="email"
                   name="customer_email"
                   value={@ticket_form["customer_email"]}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">External ID</label>
+              <label class="block text-sm font-medium text-base-content/80 mb-1">External ID</label>
               <input
                 type="text"
                 name="external_id"
                 value={@ticket_form["external_id"]}
                 required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
               />
             </div>
             <button
               type="submit"
-              class="w-full px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              class="w-full px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
             >
               Create Ticket
             </button>
@@ -246,43 +256,47 @@ defmodule SupportDeckWeb.SimulatorLive do
         </div>
 
         <div class="space-y-6">
-          <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Webhook Simulation</h2>
+          <div class="bg-base-100 rounded-lg border border-base-300 p-6">
+            <h2 class="text-lg font-semibold text-base-content mb-4">Webhook Simulation</h2>
             <form phx-submit="send_webhook" class="space-y-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Source</label>
                 <select
                   name="source"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 >
                   <option :for={s <- [:front, :slack, :linear]} value={s}>{s}</option>
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Payload (JSON)</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">
+                  Payload (JSON)
+                </label>
                 <textarea
                   name="payload"
                   rows="4"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm font-mono bg-base-100"
                 >{@webhook_form["payload"]}</textarea>
               </div>
               <button
                 type="submit"
-                class="w-full px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                class="w-full px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
               >
                 Send Webhook
               </button>
             </form>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">AI Triage</h2>
+          <div class="bg-base-100 rounded-lg border border-base-300 p-6">
+            <h2 class="text-lg font-semibold text-base-content mb-4">AI Triage</h2>
             <form phx-submit="trigger_triage" class="space-y-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Select Ticket</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">
+                  Select Ticket
+                </label>
                 <select
                   name="ticket_id"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 >
                   <option value="">Choose a ticket...</option>
                   <option :for={t <- @tickets} value={t.id}>{t.subject}</option>
@@ -290,43 +304,45 @@ defmodule SupportDeckWeb.SimulatorLive do
               </div>
               <button
                 type="submit"
-                class="w-full px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                class="w-full px-4 py-2 text-sm bg-secondary text-secondary-content rounded-lg hover:bg-secondary/90"
               >
                 Run AI Triage
               </button>
             </form>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">SLA Check</h2>
+          <div class="bg-base-100 rounded-lg border border-base-300 p-6">
+            <h2 class="text-lg font-semibold text-base-content mb-4">SLA Check</h2>
             <button
               phx-click="check_sla"
-              class="w-full px-4 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              class="w-full px-4 py-2 text-sm bg-warning text-warning-content rounded-lg hover:bg-warning/90"
             >
               Run SLA Check
             </button>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Circuit Breakers</h2>
+          <div class="bg-base-100 rounded-lg border border-base-300 p-6">
+            <h2 class="text-lg font-semibold text-base-content mb-4">Circuit Breakers</h2>
             <div class="space-y-2">
               <div
                 :for={integration <- [:front, :slack, :linear]}
                 class="flex items-center justify-between"
               >
-                <span class="text-sm font-medium text-gray-700 capitalize">{integration}</span>
+                <span class="text-sm font-medium text-base-content/80 capitalize">
+                  {integration}
+                </span>
                 <div class="flex gap-2">
                   <button
                     phx-click="trip_breaker"
                     phx-value-integration={integration}
-                    class="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    class="px-3 py-1 text-xs bg-error/15 text-error rounded hover:bg-error/25"
                   >
                     Trip
                   </button>
                   <button
                     phx-click="reset_breaker"
                     phx-value-integration={integration}
-                    class="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                    class="px-3 py-1 text-xs bg-success/15 text-success rounded hover:bg-success/25"
                   >
                     Reset
                   </button>

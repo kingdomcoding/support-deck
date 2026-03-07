@@ -132,29 +132,31 @@ defmodule SupportDeckWeb.KnowledgeLive do
       <.tech_banner patterns={["Ash resources", "Knowledge base"]} />
 
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Knowledge Base</h1>
+        <h1 class="text-2xl font-bold text-base-content">Knowledge Base</h1>
         <button
           :if={@mode == :index}
           phx-click="new"
-          class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
         >
           + New Document
         </button>
       </div>
 
       <%= if @mode in [:new, :edit] do %>
-        <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">
+        <div class="bg-base-100 rounded-lg border border-base-300 p-6 mb-6">
+          <h2 class="text-lg font-semibold text-base-content mb-4">
             {if @mode == :new, do: "New Document", else: "Edit Document"}
           </h2>
           <form phx-submit="save" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Content Type</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">
+                  Content Type
+                </label>
                 <select
                   name="content_type"
                   disabled={@mode == :edit}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 >
                   <option
                     :for={ct <- @content_types}
@@ -172,43 +174,45 @@ defmodule SupportDeckWeb.KnowledgeLive do
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Source URL</label>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">Source URL</label>
                 <input
                   type="text"
                   name="source_url"
                   value={@form_data["source_url"]}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
                 />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+              <label class="block text-sm font-medium text-base-content/80 mb-1">Content</label>
               <textarea
                 name="content"
                 rows="6"
                 required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
               >{@form_data["content"]}</textarea>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Metadata (JSON)</label>
+              <label class="block text-sm font-medium text-base-content/80 mb-1">
+                Metadata (JSON)
+              </label>
               <textarea
                 name="metadata"
                 rows="2"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm font-mono bg-base-100"
               >{@form_data["metadata"]}</textarea>
             </div>
             <div class="flex gap-3">
               <button
                 type="submit"
-                class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                class="px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
               >
                 Save
               </button>
               <button
                 type="button"
                 phx-click="cancel"
-                class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                class="px-4 py-2 text-sm border border-base-300 rounded-lg hover:bg-base-200"
               >
                 Cancel
               </button>
@@ -219,32 +223,39 @@ defmodule SupportDeckWeb.KnowledgeLive do
 
       <div :if={@mode == :index} class="mb-4">
         <form phx-change="filter">
-          <select name="type" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+          <select
+            name="type"
+            class="px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+          >
             <option value="">All Types</option>
-            <option :for={ct <- @content_types} value={ct} selected={@filter_type == ct}>{ct}</option>
+            <option :for={ct <- @content_types} value={ct} selected={@filter_type == ct}>
+              {ct}
+            </option>
           </select>
         </form>
       </div>
 
       <div
         :if={@docs == [] && @mode == :index}
-        class="text-center py-12 bg-white rounded-lg border border-gray-200"
+        class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
       >
-        <p class="text-gray-500">No documents found.</p>
+        <p class="text-base-content/60">No documents found.</p>
       </div>
 
       <div :if={@docs != [] && @mode == :index} class="space-y-3">
-        <div :for={doc <- @docs} class="bg-white rounded-lg border border-gray-200 p-4">
+        <div :for={doc <- @docs} class="bg-base-100 rounded-lg border border-base-300 p-4">
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
-                <span class="px-2 py-0.5 text-xs rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                <span class="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary border border-primary/20">
                   {doc.content_type}
                 </span>
-                <span :if={doc.source_url} class="text-xs text-gray-400">{doc.source_url}</span>
+                <span :if={doc.source_url} class="text-xs text-base-content/40">
+                  {doc.source_url}
+                </span>
               </div>
-              <p class="text-sm text-gray-700 line-clamp-3">{doc.content}</p>
-              <p class="text-xs text-gray-400 mt-2">
+              <p class="text-sm text-base-content/80 line-clamp-3">{doc.content}</p>
+              <p class="text-xs text-base-content/40 mt-2">
                 {Calendar.strftime(doc.inserted_at, "%Y-%m-%d %H:%M")}
               </p>
             </div>
@@ -252,7 +263,7 @@ defmodule SupportDeckWeb.KnowledgeLive do
               <button
                 phx-click="edit"
                 phx-value-id={doc.id}
-                class="text-sm text-indigo-600 hover:text-indigo-700"
+                class="text-sm text-primary hover:text-primary/80"
               >
                 Edit
               </button>
@@ -260,7 +271,7 @@ defmodule SupportDeckWeb.KnowledgeLive do
                 phx-click="delete"
                 phx-value-id={doc.id}
                 data-confirm="Delete this document?"
-                class="text-sm text-red-600 hover:text-red-700"
+                class="text-sm text-error hover:text-error/80"
               >
                 Delete
               </button>
