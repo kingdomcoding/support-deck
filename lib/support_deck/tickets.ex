@@ -43,7 +43,7 @@ defmodule SupportDeck.Tickets do
     end
 
     resource SupportDeck.Tickets.TicketActivity do
-      define(:log_activity, action: :log, args: [:ticket_id, :action, :actor])
+      define(:log_activity, action: :log, args: [:ticket_id, :action, :actor, {:optional, :to_value}])
       define(:list_activities_for_ticket, action: :for_ticket, args: [:ticket_id])
     end
 

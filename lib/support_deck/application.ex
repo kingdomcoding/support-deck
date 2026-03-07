@@ -5,6 +5,8 @@ defmodule SupportDeck.Application do
 
   @impl true
   def start(_type, _args) do
+    :ets.new(:circuit_breakers, [:named_table, :public, :set])
+
     children = [
       SupportDeckWeb.Telemetry,
       SupportDeck.Repo,

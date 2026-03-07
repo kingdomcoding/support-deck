@@ -229,6 +229,28 @@ defmodule SupportDeck.Tickets.Ticket do
         :customer_email,
         :metadata
       ])
+
+      change(fn changeset, _ctx ->
+        tier = Ash.Changeset.get_attribute(changeset, :subscription_tier) || :free
+        severity = Ash.Changeset.get_attribute(changeset, :severity) || :low
+
+        case SupportDeck.SLA.Defaults.deadline_minutes(tier, severity) do
+          nil ->
+            changeset
+
+          minutes ->
+            deadline = DateTime.add(DateTime.utc_now(), minutes * 60)
+            Ash.Changeset.force_change_attribute(changeset, :sla_deadline, deadline)
+        end
+      end)
+
+      change(
+        after_action(fn changeset, ticket, _ctx ->
+          broadcast({:ticket_created, ticket})
+          SupportDeck.Tickets.log_activity!(ticket.id, "created", "system")
+          {:ok, ticket}
+        end)
+      )
     end
 
     update :begin_triage do
@@ -261,12 +283,26 @@ defmodule SupportDeck.Tickets.Ticket do
       require_atomic?(false)
       accept([])
       change(transition_state(:waiting_on_customer))
+
+      change(
+        after_action(fn _changeset, ticket, _ctx ->
+          log_and_broadcast(ticket, "state_change", "agent", "waiting_on_customer")
+          {:ok, ticket}
+        end)
+      )
     end
 
     update :customer_replied do
       require_atomic?(false)
       accept([])
       change(transition_state(:assigned))
+
+      change(
+        after_action(fn _changeset, ticket, _ctx ->
+          log_and_broadcast(ticket, "state_change", "customer", "assigned")
+          {:ok, ticket}
+        end)
+      )
     end
 
     update :escalate do
@@ -300,11 +336,18 @@ defmodule SupportDeck.Tickets.Ticket do
       require_atomic?(false)
       accept([])
       change(transition_state(:closed))
+
+      change(
+        after_action(fn _changeset, ticket, _ctx ->
+          log_and_broadcast(ticket, "state_change", "system", "closed")
+          {:ok, ticket}
+        end)
+      )
     end
 
     update :apply_ai_results do
       require_atomic?(false)
-      accept([:ai_classification, :ai_draft_response, :ai_confidence, :product_area, :severity])
+      accept([:ai_classification, :ai_draft_response, :ai_confidence, :product_area, :severity, :subscription_tier])
     end
 
     update :link_linear_issue do
@@ -320,6 +363,7 @@ defmodule SupportDeck.Tickets.Ticket do
     update :check_and_escalate_sla do
       require_atomic?(false)
       accept([])
+      change(transition_state(:escalated))
 
       change(fn changeset, _ctx ->
         lock_key = :erlang.phash2({"sla", Ash.Changeset.get_data(changeset, :id)})
@@ -327,11 +371,11 @@ defmodule SupportDeck.Tickets.Ticket do
         case SupportDeck.Repo.query("SELECT pg_try_advisory_xact_lock($1)", [lock_key]) do
           {:ok, %{rows: [[true]]}} ->
             changeset
-            |> Ash.Changeset.force_change_attribute(:state, :escalated)
             |> Ash.Changeset.force_change_attribute(
               :escalation_level,
               (Ash.Changeset.get_data(changeset, :escalation_level) || 0) + 1
             )
+            |> Ash.Changeset.set_context(%{sla_lock_acquired: true})
 
           _ ->
             changeset
@@ -340,8 +384,12 @@ defmodule SupportDeck.Tickets.Ticket do
 
       change(
         after_action(fn _changeset, ticket, _ctx ->
-          SupportDeck.Workers.SLANotifier.enqueue(ticket)
-          broadcast({:ticket_escalated, ticket})
+          if _changeset.context[:sla_lock_acquired] do
+            SupportDeck.Workers.SLANotifier.enqueue(ticket)
+            broadcast({:ticket_escalated, ticket})
+            SupportDeck.Tickets.log_activity!(ticket.id, "escalation", "sla_checker", "SLA breached")
+          end
+
           {:ok, ticket}
         end)
       )
@@ -418,8 +466,8 @@ defmodule SupportDeck.Tickets.Ticket do
     Phoenix.PubSub.broadcast(SupportDeck.PubSub, "tickets:updates", message)
   end
 
-  defp log_and_broadcast(ticket, action, actor, _value) do
-    SupportDeck.Tickets.log_activity!(ticket.id, action, actor)
+  defp log_and_broadcast(ticket, action, actor, value) do
+    SupportDeck.Tickets.log_activity!(ticket.id, action, actor, value)
     broadcast({:ticket_updated, ticket})
   end
 end

@@ -18,7 +18,9 @@ defmodule SupportDeck.SLA.Defaults do
     {:pro, :medium} => 480,
     {:pro, :low} => 960,
     {:free, :critical} => 240,
-    {:free, :high} => 480
+    {:free, :high} => 480,
+    {:free, :medium} => 960,
+    {:free, :low} => 1440
   }
 
   def deadline_minutes(tier, severity) do

@@ -61,10 +61,6 @@ defmodule SupportDeck.Integrations.CircuitBreaker do
     threshold = Keyword.get(opts, :failure_threshold, @default_failure_threshold)
     cooldown = Keyword.get(opts, :cooldown_ms, @default_cooldown_ms)
 
-    if :ets.whereis(:circuit_breakers) == :undefined do
-      :ets.new(:circuit_breakers, [:named_table, :public, :set])
-    end
-
     :ets.insert(
       :circuit_breakers,
       {name, :closed, 0, nil, %{threshold: threshold, cooldown: cooldown}}
