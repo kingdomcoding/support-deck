@@ -425,7 +425,11 @@ defmodule SupportDeckWeb.RulesLive do
             </tr>
           </thead>
           <tbody class="divide-y divide-base-300">
-            <tr :for={rule <- @rules} class="hover:bg-base-200">
+            <tr
+              :for={rule <- @rules}
+              class="hover:bg-base-200 cursor-pointer"
+              phx-click={JS.patch(~p"/rules/#{rule.id}/edit")}
+            >
               <td class="px-4 py-3">
                 <p class="text-sm font-medium text-base-content">{rule.name}</p>
                 <p :if={rule.description} class="text-xs text-base-content/60">
@@ -448,12 +452,6 @@ defmodule SupportDeckWeb.RulesLive do
                 </button>
               </td>
               <td class="px-4 py-3 text-right">
-                <.link
-                  patch={~p"/rules/#{rule.id}/edit"}
-                  class="text-sm text-primary hover:text-primary/80 mr-3"
-                >
-                  Edit
-                </.link>
                 <button
                   phx-click="delete"
                   phx-value-id={rule.id}

@@ -110,14 +110,13 @@ defmodule SupportDeckWeb.SLADashboardLive do
             </tr>
           </thead>
           <tbody class="divide-y divide-base-300">
-            <tr :for={ticket <- @breaching_tickets} class="hover:bg-base-200">
+            <tr
+              :for={ticket <- @breaching_tickets}
+              class="hover:bg-base-200 cursor-pointer"
+              phx-click={JS.navigate(~p"/tickets/#{ticket.id}?from=/sla")}
+            >
               <td class="px-4 py-3">
-                <.link
-                  navigate={~p"/tickets/#{ticket.id}?from=/sla"}
-                  class="text-primary hover:text-primary/80 font-medium text-sm"
-                >
-                  {ticket.subject}
-                </.link>
+                <span class="text-primary font-medium text-sm">{ticket.subject}</span>
               </td>
               <td class="px-4 py-3 text-sm text-base-content/60">{ticket.severity}</td>
               <td class="px-4 py-3 text-sm text-base-content/60">{ticket.subscription_tier}</td>

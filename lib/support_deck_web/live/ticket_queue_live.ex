@@ -181,15 +181,11 @@ defmodule SupportDeckWeb.TicketQueueLive do
           <tbody>
             <tr
               :for={ticket <- @tickets}
-              class="border-b border-base-300/50 last:border-0 hover:bg-base-200/50 transition-colors"
+              class="border-b border-base-300/50 last:border-0 hover:bg-base-200/50 transition-colors cursor-pointer"
+              phx-click={JS.navigate(~p"/tickets/#{ticket.id}")}
             >
               <td class="px-4 py-2.5">
-                <.link
-                  navigate={~p"/tickets/#{ticket.id}"}
-                  class="text-primary hover:underline font-medium"
-                >
-                  {ticket.subject}
-                </.link>
+                <span class="text-primary font-medium">{ticket.subject}</span>
               </td>
               <td class="px-4 py-2.5">
                 <.state_pill state={ticket.state} />

@@ -251,7 +251,12 @@ defmodule SupportDeckWeb.KnowledgeLive do
       </div>
 
       <div :if={@docs != [] && @mode == :index} class="space-y-3">
-        <div :for={doc <- @docs} class="bg-base-100 rounded-lg border border-base-300 p-4">
+        <div
+          :for={doc <- @docs}
+          class="bg-base-100 rounded-lg border border-base-300 p-4 cursor-pointer hover:border-primary/30 transition"
+          phx-click="edit"
+          phx-value-id={doc.id}
+        >
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
@@ -267,14 +272,7 @@ defmodule SupportDeckWeb.KnowledgeLive do
                 {Calendar.strftime(doc.inserted_at, "%Y-%m-%d %H:%M")}
               </p>
             </div>
-            <div class="flex gap-2 ml-4">
-              <button
-                phx-click="edit"
-                phx-value-id={doc.id}
-                class="text-sm text-primary hover:text-primary/80"
-              >
-                Edit
-              </button>
+            <div class="ml-4">
               <button
                 phx-click="delete"
                 phx-value-id={doc.id}

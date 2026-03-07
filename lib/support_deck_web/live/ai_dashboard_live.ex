@@ -130,15 +130,15 @@ defmodule SupportDeckWeb.AIDashboardLive do
             </tr>
           </thead>
           <tbody class="divide-y divide-base-300">
-            <tr :for={result <- @results} class="hover:bg-base-200">
+            <tr
+              :for={result <- @results}
+              class="hover:bg-base-200 cursor-pointer"
+              phx-click={JS.navigate(~p"/tickets/#{result.ticket_id}?from=/ai")}
+            >
               <td class="px-4 py-3">
-                <.link
-                  navigate={~p"/tickets/#{result.ticket_id}?from=/ai"}
-                  class="text-primary hover:text-primary/80 text-sm font-mono"
-                  title={result.ticket_id}
-                >
+                <span class="text-primary text-sm font-mono" title={result.ticket_id}>
                   {String.slice(result.ticket_id, 0..7)}...
-                </.link>
+                </span>
               </td>
               <td class="px-4 py-3 text-sm text-base-content/80">
                 {result.predicted_category || "—"}
