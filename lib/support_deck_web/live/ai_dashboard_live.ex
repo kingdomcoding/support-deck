@@ -3,6 +3,10 @@ defmodule SupportDeckWeb.AIDashboardLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(SupportDeck.PubSub, "tickets:updates")
+    end
+
     since = DateTime.add(DateTime.utc_now(), -7 * 24 * 3600)
 
     results =
@@ -20,7 +24,18 @@ defmodule SupportDeckWeb.AIDashboardLive do
   end
 
   @impl true
+  def handle_info({event, _}, socket) when event in [:ticket_created, :ticket_updated, :ticket_escalated] do
+    {:noreply, reload_results(socket)}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
+
+  @impl true
   def handle_event("refresh", _, socket) do
+    {:noreply, reload_results(socket)}
+  end
+
+  defp reload_results(socket) do
     since = DateTime.add(DateTime.utc_now(), -7 * 24 * 3600)
 
     results =
@@ -29,10 +44,9 @@ defmodule SupportDeckWeb.AIDashboardLive do
         _ -> []
       end
 
-    {:noreply,
-     socket
-     |> assign(:results, results)
-     |> assign(:stats, compute_stats(results))}
+    socket
+    |> assign(:results, results)
+    |> assign(:stats, compute_stats(results))
   end
 
   defp compute_stats(results) do

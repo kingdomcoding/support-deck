@@ -38,6 +38,13 @@ defmodule SupportDeckWeb.Hooks.SidebarCounts do
      |> assign(:breach_count, safe_count(:breaching))}
   end
 
+  defp handle_sidebar_info({:ticket_escalated, _}, socket) do
+    {:cont,
+     socket
+     |> assign(:ticket_count, safe_count(:tickets))
+     |> assign(:breach_count, safe_count(:breaching))}
+  end
+
   defp handle_sidebar_info({:rule_updated, _}, socket) do
     {:cont, assign(socket, :rule_count, safe_count(:rules))}
   end

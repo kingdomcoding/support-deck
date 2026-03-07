@@ -95,7 +95,7 @@ defmodule SupportDeckWeb.TicketDetailLive do
   end
 
   @impl true
-  def handle_info({:ticket_updated, updated}, socket) do
+  def handle_info({event, updated}, socket) when event in [:ticket_updated, :ticket_escalated] do
     if updated.id == socket.assigns.ticket.id do
       activities =
         case SupportDeck.Tickets.list_activities_for_ticket(updated.id) do

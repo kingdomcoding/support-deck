@@ -3,6 +3,10 @@ defmodule SupportDeckWeb.SLADashboardLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(SupportDeck.PubSub, "tickets:updates")
+    end
+
     breaching =
       case SupportDeck.Tickets.list_breaching_sla() do
         {:ok, tickets} -> tickets
@@ -22,6 +26,19 @@ defmodule SupportDeckWeb.SLADashboardLive do
      |> assign(:breaching_tickets, breaching)
      |> assign(:policies, policies)}
   end
+
+  @impl true
+  def handle_info({event, _}, socket) when event in [:ticket_created, :ticket_updated, :ticket_escalated] do
+    breaching =
+      case SupportDeck.Tickets.list_breaching_sla() do
+        {:ok, tickets} -> tickets
+        _ -> []
+      end
+
+    {:noreply, assign(socket, :breaching_tickets, breaching)}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("refresh", _, socket) do

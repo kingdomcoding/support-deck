@@ -31,6 +31,13 @@ defmodule SupportDeckWeb.OverviewLive do
      |> assign(:recent_tickets, load_recent_tickets())}
   end
 
+  def handle_info({:ticket_escalated, _}, socket) do
+    {:noreply,
+     socket
+     |> assign(:stats, load_stats())
+     |> assign(:recent_tickets, load_recent_tickets())}
+  end
+
   def handle_info(_, socket), do: {:noreply, socket}
 
   defp load_stats do
