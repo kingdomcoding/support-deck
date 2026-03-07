@@ -60,35 +60,42 @@ defmodule SupportDeckWeb.KnowledgeLive do
   end
 
   def handle_event("save", params, socket) do
-    result =
-      case socket.assigns.mode do
-        :new ->
-          SupportDeck.AI.add_knowledge_doc(%{
-            content: params["content"],
-            content_type: String.to_existing_atom(params["content_type"]),
-            source_url: if(params["source_url"] != "", do: params["source_url"]),
-            metadata: Jason.decode!(params["metadata"])
-          })
-
-        :edit ->
-          SupportDeck.AI.update_knowledge_doc(socket.assigns.selected_doc, %{
-            content: params["content"],
-            metadata: Jason.decode!(params["metadata"])
-          })
-      end
-
-    case result do
-      {:ok, _} ->
+    case Jason.decode(params["metadata"]) do
+      {:error, %Jason.DecodeError{} = err} ->
         {:noreply,
-         socket
-         |> assign(:mode, :index)
-         |> assign(:selected_doc, nil)
-         |> assign(:form_data, nil)
-         |> put_flash(:info, "Document saved")
-         |> load_docs()}
+         put_flash(socket, :error, "Invalid JSON in metadata: #{Exception.message(err)}")}
 
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Save failed: #{inspect(err)}")}
+      {:ok, metadata} ->
+        result =
+          case socket.assigns.mode do
+            :new ->
+              SupportDeck.AI.add_knowledge_doc(%{
+                content: params["content"],
+                content_type: String.to_existing_atom(params["content_type"]),
+                source_url: if(params["source_url"] != "", do: params["source_url"]),
+                metadata: metadata
+              })
+
+            :edit ->
+              SupportDeck.AI.update_knowledge_doc(socket.assigns.selected_doc, %{
+                content: params["content"],
+                metadata: metadata
+              })
+          end
+
+        case result do
+          {:ok, _} ->
+            {:noreply,
+             socket
+             |> assign(:mode, :index)
+             |> assign(:selected_doc, nil)
+             |> assign(:form_data, nil)
+             |> put_flash(:info, "Document saved")
+             |> load_docs()}
+
+          {:error, err} ->
+            {:noreply, put_flash(socket, :error, "Save failed: #{inspect(err)}")}
+        end
     end
   end
 

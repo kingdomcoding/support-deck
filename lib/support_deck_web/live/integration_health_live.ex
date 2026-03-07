@@ -89,7 +89,7 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
     assigns = assign(assigns, :color, color)
 
     ~H"""
-    <span class={"inline-block w-3 h-3 rounded-full #{@color}"} />
+    <span class={["inline-block w-3 h-3 rounded-full", @color]} />
     """
   end
 

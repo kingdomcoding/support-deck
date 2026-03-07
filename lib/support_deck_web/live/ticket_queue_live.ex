@@ -167,37 +167,37 @@ defmodule SupportDeckWeb.TicketQueueLive do
   end
 
   defp status_badge(assigns) do
-    colors = %{
-      new: "bg-blue-100 text-blue-700",
-      triaging: "bg-yellow-100 text-yellow-700",
-      assigned: "bg-green-100 text-green-700",
-      waiting_on_customer: "bg-orange-100 text-orange-700",
-      escalated: "bg-red-100 text-red-700",
-      resolved: "bg-gray-100 text-gray-700",
-      closed: "bg-gray-100 text-gray-500"
-    }
+    color = case assigns.status do
+      :new -> "bg-blue-100 text-blue-700"
+      :triaging -> "bg-yellow-100 text-yellow-700"
+      :assigned -> "bg-green-100 text-green-700"
+      :waiting_on_customer -> "bg-orange-100 text-orange-700"
+      :escalated -> "bg-red-100 text-red-700"
+      :resolved -> "bg-gray-100 text-gray-700"
+      :closed -> "bg-gray-100 text-gray-500"
+      _ -> "bg-gray-100 text-gray-500"
+    end
 
-    assigns =
-      assign(assigns, :color, Map.get(colors, assigns.status, "bg-gray-100 text-gray-500"))
+    assigns = assign(assigns, :color, color)
 
     ~H"""
-    <span class={"px-2 py-1 text-xs rounded-full #{@color}"}>{@status}</span>
+    <span class={["px-2 py-1 text-xs rounded-full", @color]}>{@status}</span>
     """
   end
 
   defp severity_badge(assigns) do
-    colors = %{
-      critical: "bg-red-100 text-red-700",
-      high: "bg-orange-100 text-orange-700",
-      medium: "bg-yellow-100 text-yellow-700",
-      low: "bg-gray-100 text-gray-600"
-    }
+    color = case assigns.severity do
+      :critical -> "bg-red-100 text-red-700"
+      :high -> "bg-orange-100 text-orange-700"
+      :medium -> "bg-yellow-100 text-yellow-700"
+      :low -> "bg-gray-100 text-gray-600"
+      _ -> "bg-gray-100 text-gray-500"
+    end
 
-    assigns =
-      assign(assigns, :color, Map.get(colors, assigns.severity, "bg-gray-100 text-gray-500"))
+    assigns = assign(assigns, :color, color)
 
     ~H"""
-    <span class={"px-2 py-1 text-xs rounded-full #{@color}"}>{@severity}</span>
+    <span class={["px-2 py-1 text-xs rounded-full", @color]}>{@severity}</span>
     """
   end
 end

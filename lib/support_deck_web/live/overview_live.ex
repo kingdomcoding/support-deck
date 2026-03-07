@@ -145,10 +145,20 @@ defmodule SupportDeckWeb.OverviewLive do
   attr :color, :string, required: true
 
   defp stat_card(assigns) do
+    color_classes = %{
+      "blue" => "text-blue-600",
+      "red" => "text-red-600",
+      "green" => "text-green-600",
+      "purple" => "text-purple-600"
+    }
+
+    assigns =
+      assign(assigns, :color_class, Map.get(color_classes, assigns.color, "text-gray-600"))
+
     ~H"""
     <div class="bg-white rounded-lg border border-gray-200 p-4">
       <p class="text-sm text-gray-500">{@label}</p>
-      <p class={"text-2xl font-bold text-#{@color}-600"}>{@value}</p>
+      <p class={"text-2xl font-bold #{@color_class}"}>{@value}</p>
     </div>
     """
   end

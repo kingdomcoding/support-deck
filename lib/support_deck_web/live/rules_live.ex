@@ -89,32 +89,38 @@ defmodule SupportDeckWeb.RulesLive do
   end
 
   def handle_event("save", params, socket) do
-    attrs = %{
-      name: params["name"],
-      description: params["description"],
-      trigger: String.to_existing_atom(params["trigger"]),
-      conditions: Jason.decode!(params["conditions"]),
-      actions_list: Jason.decode!(params["actions_list"]),
-      enabled: params["enabled"] == "true",
-      priority: String.to_integer(params["priority"])
-    }
+    with {:ok, conditions} <- Jason.decode(params["conditions"]),
+         {:ok, actions} <- Jason.decode(params["actions_list"]) do
+      attrs = %{
+        name: params["name"],
+        description: params["description"],
+        trigger: String.to_existing_atom(params["trigger"]),
+        conditions: conditions,
+        actions_list: actions,
+        enabled: params["enabled"] == "true",
+        priority: String.to_integer(params["priority"])
+      }
 
-    result =
-      case socket.assigns.mode do
-        :new -> SupportDeck.Tickets.create_rule(attrs)
-        :edit -> SupportDeck.Tickets.update_rule(socket.assigns.selected_rule, attrs)
+      result =
+        case socket.assigns.mode do
+          :new -> SupportDeck.Tickets.create_rule(attrs)
+          :edit -> SupportDeck.Tickets.update_rule(socket.assigns.selected_rule, attrs)
+        end
+
+      case result do
+        {:ok, _} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, "Rule saved")
+           |> load_rules()
+           |> push_patch(to: ~p"/rules")}
+
+        {:error, err} ->
+          {:noreply, put_flash(socket, :error, "Save failed: #{inspect(err)}")}
       end
-
-    case result do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Rule saved")
-         |> load_rules()
-         |> push_patch(to: ~p"/rules")}
-
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Save failed: #{inspect(err)}")}
+    else
+      {:error, %Jason.DecodeError{} = err} ->
+        {:noreply, put_flash(socket, :error, "Invalid JSON: #{Exception.message(err)}")}
     end
   end
 

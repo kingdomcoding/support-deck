@@ -392,7 +392,7 @@ defmodule SupportDeck.Tickets.Ticket do
 
       filter(
         expr(
-          status not in [:resolved, :closed] and
+          state not in [:resolved, :closed] and
             not is_nil(sla_deadline) and
             sla_deadline <= now()
         )

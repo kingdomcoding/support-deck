@@ -180,7 +180,7 @@ defmodule SupportDeckWeb.SimulatorLive do
                   name="source"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option :for={s <- [:manual, :front, :slack, :linear]} value={s}>{s}</option>
+                  <option :for={s <- [:manual, :front, :slack]} value={s}>{s}</option>
                 </select>
               </div>
               <div>
