@@ -83,17 +83,40 @@ defmodule SupportDeckWeb.TicketDetailLive do
 
   def handle_event("trigger_triage", _, socket) do
     ticket = socket.assigns.ticket
-    SupportDeck.Workers.AITriageWorker.new(%{ticket_id: ticket.id}) |> Oban.insert()
-    {:noreply, put_flash(socket, :info, "AI triage queued")}
+
+    case SupportDeck.Workers.AITriageWorker.new(%{ticket_id: ticket.id}) |> Oban.insert() do
+      {:ok, _} ->
+        Process.send_after(self(), :refresh_triage, 2000)
+        {:noreply, put_flash(socket, :info, "AI triage queued")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to queue triage")}
+    end
   end
 
   @impl true
   def handle_info({:ticket_updated, updated}, socket) do
     if updated.id == socket.assigns.ticket.id do
-      {:noreply, assign(socket, :ticket, updated)}
+      activities =
+        case SupportDeck.Tickets.list_activities_for_ticket(updated.id) do
+          {:ok, a} -> a
+          _ -> socket.assigns.activities
+        end
+
+      {:noreply, socket |> assign(:ticket, updated) |> assign(:activities, activities)}
     else
       {:noreply, socket}
     end
+  end
+
+  def handle_info(:refresh_triage, socket) do
+    triage_results =
+      case SupportDeck.AI.list_triage_for_ticket(socket.assigns.ticket.id) do
+        {:ok, t} -> t
+        _ -> socket.assigns.triage_results
+      end
+
+    {:noreply, assign(socket, :triage_results, triage_results)}
   end
 
   def handle_info(_, socket), do: {:noreply, socket}

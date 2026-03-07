@@ -41,18 +41,22 @@ defmodule SupportDeckWeb.KnowledgeLive do
   end
 
   def handle_event("edit", %{"id" => id}, socket) do
-    doc = Enum.find(socket.assigns.docs, &(&1.id == id))
+    case Enum.find(socket.assigns.docs, &(&1.id == id)) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "Document not found")}
 
-    {:noreply,
-     socket
-     |> assign(:mode, :edit)
-     |> assign(:selected_doc, doc)
-     |> assign(:form_data, %{
-       "content" => doc.content,
-       "content_type" => to_string(doc.content_type),
-       "source_url" => doc.source_url || "",
-       "metadata" => Jason.encode!(doc.metadata || %{})
-     })}
+      doc ->
+        {:noreply,
+         socket
+         |> assign(:mode, :edit)
+         |> assign(:selected_doc, doc)
+         |> assign(:form_data, %{
+           "content" => doc.content,
+           "content_type" => to_string(doc.content_type),
+           "source_url" => doc.source_url || "",
+           "metadata" => Jason.encode!(doc.metadata || %{})
+         })}
+    end
   end
 
   def handle_event("cancel", _, socket) do
@@ -102,14 +106,18 @@ defmodule SupportDeckWeb.KnowledgeLive do
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
-    doc = Enum.find(socket.assigns.docs, &(&1.id == id))
+    case Enum.find(socket.assigns.docs, &(&1.id == id)) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "Document not found")}
 
-    case SupportDeck.AI.delete_knowledge_doc(doc) do
-      :ok ->
-        {:noreply, socket |> put_flash(:info, "Document deleted") |> load_docs()}
+      doc ->
+        case SupportDeck.AI.delete_knowledge_doc(doc) do
+          :ok ->
+            {:noreply, socket |> put_flash(:info, "Document deleted") |> load_docs()}
 
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+          {:error, err} ->
+            {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+        end
     end
   end
 

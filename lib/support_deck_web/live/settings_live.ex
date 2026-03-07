@@ -73,14 +73,18 @@ defmodule SupportDeckWeb.SettingsLive do
   end
 
   def handle_event("delete_credential", %{"id" => id}, socket) do
-    credential = Enum.find(socket.assigns.credentials, &(&1.id == id))
+    case Enum.find(socket.assigns.credentials, &(&1.id == id)) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "Credential not found")}
 
-    case SupportDeck.Settings.delete_credential(credential) do
-      :ok ->
-        {:noreply, socket |> put_flash(:info, "Credential deleted") |> load_credentials()}
+      credential ->
+        case SupportDeck.Settings.delete_credential(credential) do
+          :ok ->
+            {:noreply, socket |> put_flash(:info, "Credential deleted") |> load_credentials()}
 
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+          {:error, err} ->
+            {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+        end
     end
   end
 

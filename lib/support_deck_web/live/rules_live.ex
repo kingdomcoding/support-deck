@@ -80,26 +80,34 @@ defmodule SupportDeckWeb.RulesLive do
 
   @impl true
   def handle_event("toggle", %{"id" => id}, socket) do
-    rule = Enum.find(socket.assigns.rules, &(&1.id == id))
+    case Enum.find(socket.assigns.rules, &(&1.id == id)) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "Rule not found")}
 
-    case SupportDeck.Tickets.update_rule(rule, %{enabled: !rule.enabled}) do
-      {:ok, _} ->
-        {:noreply, load_rules(socket)}
+      rule ->
+        case SupportDeck.Tickets.update_rule(rule, %{enabled: !rule.enabled}) do
+          {:ok, _} ->
+            {:noreply, load_rules(socket)}
 
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Toggle failed: #{ErrorHelpers.format_error(err)}")}
+          {:error, err} ->
+            {:noreply, put_flash(socket, :error, "Toggle failed: #{ErrorHelpers.format_error(err)}")}
+        end
     end
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
-    rule = Enum.find(socket.assigns.rules, &(&1.id == id))
+    case Enum.find(socket.assigns.rules, &(&1.id == id)) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "Rule not found")}
 
-    case SupportDeck.Tickets.delete_rule(rule) do
-      :ok ->
-        {:noreply, socket |> put_flash(:info, "Rule deleted") |> load_rules()}
+      rule ->
+        case SupportDeck.Tickets.delete_rule(rule) do
+          :ok ->
+            {:noreply, socket |> put_flash(:info, "Rule deleted") |> load_rules()}
 
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+          {:error, err} ->
+            {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+        end
     end
   end
 

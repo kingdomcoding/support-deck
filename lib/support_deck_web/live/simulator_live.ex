@@ -66,10 +66,7 @@ defmodule SupportDeckWeb.SimulatorLive do
 
     case Jason.decode(payload) do
       {:ok, decoded} ->
-        port =
-          Application.get_env(:support_deck, SupportDeckWeb.Endpoint)[:http][:port] || 4500
-
-        url = "http://localhost:#{port}/webhooks/#{source}"
+        url = "#{SupportDeckWeb.Endpoint.url()}/webhooks/#{source}"
 
         case Req.post(url, json: decoded) do
           {:ok, %{status: status}} ->

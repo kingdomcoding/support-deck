@@ -6,7 +6,13 @@ defmodule SupportDeck.Workers.RuleActionWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"ticket_id" => id, "action_type" => type, "params" => params}}) do
-    {:ok, ticket} = Tickets.get_ticket(id)
+    case Tickets.get_ticket(id) do
+      {:error, _} -> {:cancel, "ticket #{id} not found"}
+      {:ok, ticket} -> execute_action(ticket, type, params)
+    end
+  end
+
+  defp execute_action(ticket, type, params) do
 
     case type do
       "slack_notify" ->

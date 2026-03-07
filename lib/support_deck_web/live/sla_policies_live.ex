@@ -35,26 +35,36 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
   end
 
   def handle_event("save", %{"first_response_minutes" => frm, "resolution_minutes" => rm}, socket) do
-    policy = Enum.find(socket.assigns.policies, &(&1.id == socket.assigns.editing))
+    case Enum.find(socket.assigns.policies, &(&1.id == socket.assigns.editing)) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "Policy not found")}
 
-    attrs = %{
-      first_response_minutes: String.to_integer(frm)
-    }
+      policy ->
+        with {frm_int, ""} <- Integer.parse(frm),
+             true <- frm_int > 0 do
+          attrs = %{first_response_minutes: frm_int}
 
-    attrs =
-      if rm != "", do: Map.put(attrs, :resolution_minutes, String.to_integer(rm)), else: attrs
+          attrs =
+            case Integer.parse(rm) do
+              {rm_int, ""} when rm_int > 0 -> Map.put(attrs, :resolution_minutes, rm_int)
+              _ -> attrs
+            end
 
-    case SupportDeck.SLADomain.update_policy(policy, attrs) do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> assign(:editing, nil)
-         |> assign(:form, nil)
-         |> put_flash(:info, "Policy updated")
-         |> load_policies()}
+          case SupportDeck.SLADomain.update_policy(policy, attrs) do
+            {:ok, _} ->
+              {:noreply,
+               socket
+               |> assign(:editing, nil)
+               |> assign(:form, nil)
+               |> put_flash(:info, "Policy updated")
+               |> load_policies()}
 
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Update failed: #{ErrorHelpers.format_error(err)}")}
+            {:error, err} ->
+              {:noreply, put_flash(socket, :error, "Update failed: #{ErrorHelpers.format_error(err)}")}
+          end
+        else
+          _ -> {:noreply, put_flash(socket, :error, "Minutes must be a positive number")}
+        end
     end
   end
 

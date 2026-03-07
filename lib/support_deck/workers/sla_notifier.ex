@@ -11,7 +11,13 @@ defmodule SupportDeck.Workers.SLANotifier do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"ticket_id" => ticket_id, "level" => level}}) do
-    {:ok, ticket} = SupportDeck.Tickets.get_ticket(ticket_id)
+    case SupportDeck.Tickets.get_ticket(ticket_id) do
+      {:error, _} -> {:cancel, "ticket #{ticket_id} not found"}
+      {:ok, ticket} -> notify(ticket, level)
+    end
+  end
+
+  defp notify(ticket, level) do
     {channel, mention} = escalation_target(ticket.subscription_tier, level)
 
     message = """
