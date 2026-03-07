@@ -50,12 +50,12 @@ defmodule SupportDeckWeb.SLADashboardLive do
           >
             Refresh
           </button>
-          <a
-            href={~p"/sla/policies"}
+          <.link
+            navigate={~p"/sla/policies"}
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             Policies
-          </a>
+          </.link>
         </:actions>
       </.page_header>
 
@@ -112,12 +112,12 @@ defmodule SupportDeckWeb.SLADashboardLive do
           <tbody class="divide-y divide-base-300">
             <tr :for={ticket <- @breaching_tickets} class="hover:bg-base-200">
               <td class="px-4 py-3">
-                <a
-                  href={~p"/tickets/#{ticket.id}"}
+                <.link
+                  navigate={~p"/tickets/#{ticket.id}?from=/sla"}
                   class="text-primary hover:text-primary/80 font-medium text-sm"
                 >
                   {ticket.subject}
-                </a>
+                </.link>
               </td>
               <td class="px-4 py-3 text-sm text-base-content/60">{ticket.severity}</td>
               <td class="px-4 py-3 text-sm text-base-content/60">{ticket.subscription_tier}</td>

@@ -11,7 +11,7 @@ defmodule SupportDeckWeb.Layouts do
     <div class="flex h-screen bg-base-200">
       <nav class="w-60 bg-base-100 border-r border-base-300 flex flex-col">
         <div class="p-4 border-b border-base-300">
-          <a href="/" class="flex items-center gap-2.5">
+          <.link navigate="/" class="flex items-center gap-2.5">
             <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-sm">
               <.icon name="hero-lifebuoy" class="size-4.5 text-white" />
             </div>
@@ -21,7 +21,7 @@ defmodule SupportDeckWeb.Layouts do
               </span>
               <span class="text-[10px] text-base-content/50 leading-tight">Supabase Demo</span>
             </div>
-          </a>
+          </.link>
         </div>
 
         <div class="flex-1 overflow-y-auto py-3 px-2 space-y-5">
@@ -104,12 +104,12 @@ defmodule SupportDeckWeb.Layouts do
         </div>
 
         <div class="p-3 border-t border-base-300 flex items-center justify-between">
-          <a
-            href={~p"/tour"}
+          <.link
+            navigate={~p"/tour"}
             class="flex items-center gap-1.5 text-sm text-primary hover:underline"
           >
             <.icon name="hero-play-circle" class="size-4" /> Tour
-          </a>
+          </.link>
           <button
             onclick="const html = document.documentElement; const current = html.getAttribute('data-theme'); const next = current === 'dark' ? 'light' : 'dark'; html.setAttribute('data-theme', next); localStorage.setItem('phx:theme', next);"
             class="p-1.5 rounded-md text-base-content/50 hover:text-base-content hover:bg-base-200 transition"
@@ -134,14 +134,21 @@ defmodule SupportDeckWeb.Layouts do
   attr :icon, :string, required: true
   attr :badge, :integer, default: nil
   attr :badge_variant, :string, default: "primary"
+  attr :tour, :string, default: nil
 
   defp nav_item(assigns) do
-    active = assigns.current == assigns.path
+    active =
+      case assigns.path do
+        "/" -> assigns.current == "/"
+        path -> assigns.current != nil and String.starts_with?(assigns.current, path)
+      end
+
     assigns = assign(assigns, :active, active)
 
     ~H"""
-    <a
-      href={@path}
+    <.link
+      navigate={@path}
+      data-tour={@tour}
       class={[
         "flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors",
         @active && "bg-primary/10 text-primary font-medium",
@@ -161,7 +168,7 @@ defmodule SupportDeckWeb.Layouts do
       >
         {@badge}
       </span>
-    </a>
+    </.link>
     """
   end
 

@@ -192,13 +192,13 @@ defmodule SupportDeckWeb.RulesLive do
         patterns={["Rule engine", "Condition matching", "Ash CRUD"]}
       >
         <:actions>
-          <a
+          <.link
             :if={@mode == :index}
-            href={~p"/rules/new"}
+            patch={~p"/rules/new"}
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             + New Rule
-          </a>
+          </.link>
         </:actions>
       </.page_header>
 
@@ -376,12 +376,12 @@ defmodule SupportDeckWeb.RulesLive do
               >
                 Save
               </button>
-              <a
-                href={~p"/rules"}
+              <.link
+                patch={~p"/rules"}
                 class="px-4 py-2 text-sm border border-base-300 rounded-lg hover:bg-base-200"
               >
                 Cancel
-              </a>
+              </.link>
             </div>
           </form>
         </div>
@@ -392,12 +392,12 @@ defmodule SupportDeckWeb.RulesLive do
         class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
       >
         <p class="text-base-content/60">No rules configured yet.</p>
-        <a
-          href={~p"/rules/new"}
+        <.link
+          patch={~p"/rules/new"}
           class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
         >
           Create your first rule
-        </a>
+        </.link>
       </div>
 
       <div
@@ -448,12 +448,12 @@ defmodule SupportDeckWeb.RulesLive do
                 </button>
               </td>
               <td class="px-4 py-3 text-right">
-                <a
-                  href={~p"/rules/#{rule.id}/edit"}
+                <.link
+                  patch={~p"/rules/#{rule.id}/edit"}
                   class="text-sm text-primary hover:text-primary/80 mr-3"
                 >
                   Edit
-                </a>
+                </.link>
                 <button
                   phx-click="delete"
                   phx-value-id={rule.id}

@@ -70,12 +70,12 @@ defmodule SupportDeckWeb.AIDashboardLive do
           >
             Refresh
           </button>
-          <a
-            href={~p"/simulator"}
+          <.link
+            navigate={~p"/simulator"}
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             Trigger Triage
-          </a>
+          </.link>
         </:actions>
       </.page_header>
 
@@ -97,12 +97,12 @@ defmodule SupportDeckWeb.AIDashboardLive do
         class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
       >
         <p class="text-base-content/60">No triage results yet.</p>
-        <a
-          href={~p"/simulator"}
+        <.link
+          navigate={~p"/simulator"}
           class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
         >
           Run a triage in the Simulator
-        </a>
+        </.link>
       </div>
 
       <div
@@ -132,12 +132,13 @@ defmodule SupportDeckWeb.AIDashboardLive do
           <tbody class="divide-y divide-base-300">
             <tr :for={result <- @results} class="hover:bg-base-200">
               <td class="px-4 py-3">
-                <a
-                  href={~p"/tickets/#{result.ticket_id}"}
+                <.link
+                  navigate={~p"/tickets/#{result.ticket_id}?from=/ai"}
                   class="text-primary hover:text-primary/80 text-sm font-mono"
+                  title={result.ticket_id}
                 >
                   {String.slice(result.ticket_id, 0..7)}...
-                </a>
+                </.link>
               </td>
               <td class="px-4 py-3 text-sm text-base-content/80">
                 {result.predicted_category || "—"}

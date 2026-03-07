@@ -102,9 +102,9 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
       <div class="flex items-center gap-3 mb-2">
-        <a href={~p"/sla"} class="text-base-content/40 hover:text-base-content/60 text-sm">
+        <.link navigate={~p"/sla"} class="text-base-content/40 hover:text-base-content/60 text-sm">
           &larr; Back
-        </a>
+        </.link>
       </div>
       <.page_header
         title="SLA Policies"

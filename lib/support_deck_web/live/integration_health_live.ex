@@ -54,12 +54,12 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
           >
             Refresh
           </button>
-          <a
-            href={~p"/settings"}
+          <.link
+            navigate={~p"/settings"}
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             Credentials
-          </a>
+          </.link>
         </:actions>
       </.page_header>
 

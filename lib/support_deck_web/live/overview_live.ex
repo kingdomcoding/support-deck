@@ -84,12 +84,12 @@ defmodule SupportDeckWeb.OverviewLive do
         patterns={["Phoenix LiveView", "PubSub real-time", "Ash Domain queries"]}
       >
         <:actions>
-          <a
-            href={~p"/tour"}
+          <.link
+            navigate={~p"/tour"}
             class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             <.icon name="hero-play-circle" class="size-4" /> Guided Tour
-          </a>
+          </.link>
         </:actions>
       </.page_header>
 
@@ -128,13 +128,13 @@ defmodule SupportDeckWeb.OverviewLive do
         <div class="lg:col-span-2 bg-base-100 rounded-lg border border-base-300 overflow-hidden">
           <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
             <h2 class="text-sm font-semibold text-base-content">Recent Tickets</h2>
-            <a href={~p"/tickets"} class="text-xs text-primary hover:underline">View all</a>
+            <.link navigate={~p"/tickets"} class="text-xs text-primary hover:underline">View all</.link>
           </div>
           <div :if={@recent_tickets == []} class="p-8 text-center text-base-content/50 text-sm">
             No tickets yet.
-            <a href={~p"/simulator"} class="text-primary hover:underline">
+            <.link navigate={~p"/simulator"} class="text-primary hover:underline">
               Create one in the Simulator
-            </a>
+            </.link>
           </div>
           <table :if={@recent_tickets != []} class="w-full text-sm">
             <tbody>
@@ -143,12 +143,12 @@ defmodule SupportDeckWeb.OverviewLive do
                 class="border-b border-base-300/50 last:border-0 hover:bg-base-200/50"
               >
                 <td class="px-4 py-2.5">
-                  <a
-                    href={~p"/tickets/#{ticket.id}"}
+                  <.link
+                    navigate={~p"/tickets/#{ticket.id}?from=/"}
                     class="text-primary hover:underline font-medium"
                   >
                     {ticket.subject}
-                  </a>
+                  </.link>
                   <p class="text-xs text-base-content/40 mt-0.5">
                     {ticket.customer_email || "No email"} · {relative_time(ticket.inserted_at)}
                   </p>
@@ -172,24 +172,24 @@ defmodule SupportDeckWeb.OverviewLive do
           <div class="bg-base-100 rounded-lg border border-base-300 p-4">
             <h2 class="text-sm font-semibold text-base-content mb-3">Quick Actions</h2>
             <div class="space-y-1.5">
-              <a
-                href={~p"/simulator"}
+              <.link
+                navigate={~p"/simulator"}
                 class="flex items-center gap-2 text-sm text-base-content/70 hover:text-base-content py-1"
               >
                 <.icon name="hero-plus-circle" class="size-4 text-primary" /> Create Ticket
-              </a>
-              <a
-                href={~p"/rules"}
+              </.link>
+              <.link
+                navigate={~p"/rules"}
                 class="flex items-center gap-2 text-sm text-base-content/70 hover:text-base-content py-1"
               >
                 <.icon name="hero-bolt" class="size-4 text-primary" /> Automation Rules
-              </a>
-              <a
-                href={~p"/settings"}
+              </.link>
+              <.link
+                navigate={~p"/settings"}
                 class="flex items-center gap-2 text-sm text-base-content/70 hover:text-base-content py-1"
               >
                 <.icon name="hero-key" class="size-4 text-primary" /> Configure Credentials
-              </a>
+              </.link>
             </div>
           </div>
         </div>
@@ -220,8 +220,8 @@ defmodule SupportDeckWeb.OverviewLive do
       )
 
     ~H"""
-    <a
-      href={@href}
+    <.link
+      navigate={@href}
       class="bg-base-100 rounded-lg border border-base-300 p-4 hover:border-primary/30 transition group block"
     >
       <div class="flex items-center justify-between mb-1">
@@ -229,7 +229,7 @@ defmodule SupportDeckWeb.OverviewLive do
         <.icon name={@icon} class={["size-4 opacity-60", @variant_class]} />
       </div>
       <p class={["text-2xl font-bold", @variant_class]}>{@value}</p>
-    </a>
+    </.link>
     """
   end
 end

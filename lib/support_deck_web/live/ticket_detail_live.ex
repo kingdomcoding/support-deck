@@ -3,7 +3,16 @@ defmodule SupportDeckWeb.TicketDetailLive do
   alias SupportDeckWeb.ErrorHelpers
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"id" => id} = params, _session, socket) do
+    back_path = params["from"] || ~p"/tickets"
+
+    back_label =
+      cond do
+        String.starts_with?(back_path, "/sla") -> "Back to SLA Monitor"
+        String.starts_with?(back_path, "/ai") -> "Back to AI Triage"
+        back_path == "/" -> "Back to Dashboard"
+        true -> "Back to Tickets"
+      end
     case SupportDeck.Tickets.get_ticket(id) do
       {:ok, ticket} ->
         if connected?(socket) do
@@ -26,6 +35,8 @@ defmodule SupportDeckWeb.TicketDetailLive do
          socket
          |> assign(:page_title, ticket.subject)
          |> assign(:current_path, ~p"/tickets/#{id}")
+         |> assign(:back_path, back_path)
+         |> assign(:back_label, back_label)
          |> assign(:ticket, ticket)
          |> assign(:activities, activities)
          |> assign(:triage_results, triage_results)}
@@ -92,12 +103,12 @@ defmodule SupportDeckWeb.TicketDetailLive do
     ~H"""
     <div class="max-w-4xl mx-auto px-6 py-6">
       <div class="mb-4">
-        <a
-          href={~p"/tickets"}
+        <.link
+          navigate={@back_path}
           class="text-sm text-base-content/50 hover:text-base-content inline-flex items-center gap-1"
         >
-          <.icon name="hero-arrow-left" class="size-3.5" /> Back to Tickets
-        </a>
+          <.icon name="hero-arrow-left" class="size-3.5" /> {@back_label}
+        </.link>
       </div>
 
       <div class="flex items-start justify-between mb-6">
