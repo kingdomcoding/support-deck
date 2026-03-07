@@ -51,14 +51,22 @@ defmodule SupportDeck.Workers.LinearWebhookWorker do
 
     case state_type do
       "completed" ->
-        Tickets.resolve_ticket(ticket, %{
-          resolution_note: "Resolved via Linear issue #{get_in(payload, ["data", "identifier"])}"
-        })
+        Tickets.resolve_ticket(ticket)
+
+        Tickets.log_activity(
+          ticket.id,
+          "Resolved via Linear issue #{get_in(payload, ["data", "identifier"])}",
+          "linear_sync"
+        )
 
       "canceled" ->
-        Tickets.resolve_ticket(ticket, %{
-          resolution_note: "Linear issue #{get_in(payload, ["data", "identifier"])} was canceled"
-        })
+        Tickets.resolve_ticket(ticket)
+
+        Tickets.log_activity(
+          ticket.id,
+          "Linear issue #{get_in(payload, ["data", "identifier"])} was canceled",
+          "linear_sync"
+        )
 
       _ ->
         Logger.debug("linear.issue.state_change", state: state_name, ticket_id: ticket.id)

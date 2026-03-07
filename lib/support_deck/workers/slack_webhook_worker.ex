@@ -24,14 +24,22 @@ defmodule SupportDeck.Workers.SlackWebhookWorker do
 
       _ ->
         unless event["thread_ts"] do
-          Tickets.open_ticket(%{
-            external_id: "slack_#{ch}_#{ts}",
-            source: :slack,
-            subject: String.slice(text || "", 0..120),
-            body: text,
-            slack_channel_id: ch,
-            slack_thread_ts: ts
-          })
+          subject = String.slice(text || "New Slack message", 0..120)
+
+          case Tickets.open_ticket(subject, %{
+                 external_id: "slack_#{ch}_#{ts}",
+                 source: :slack,
+                 body: text,
+                 slack_channel_id: ch,
+                 slack_thread_ts: ts
+               }) do
+            {:ok, ticket} ->
+              SupportDeck.Workers.AITriageWorker.new(%{ticket_id: ticket.id}) |> Oban.insert()
+              SupportDeck.Tickets.RuleEngine.evaluate(ticket, :ticket_created)
+
+            _ ->
+              :ok
+          end
         end
     end
 
@@ -43,7 +51,7 @@ defmodule SupportDeck.Workers.SlackWebhookWorker do
       {:ok, ticket} ->
         case emoji do
           "white_check_mark" ->
-            Tickets.resolve_ticket(ticket, %{resolution_note: "Resolved via Slack reaction"})
+            Tickets.resolve_ticket(ticket)
 
           "eyes" ->
             Tickets.begin_triage(ticket)
@@ -60,14 +68,22 @@ defmodule SupportDeck.Workers.SlackWebhookWorker do
   defp handle_reaction(_), do: :ok
 
   defp handle_mention(%{"channel" => ch, "ts" => ts, "text" => text}) do
-    Tickets.open_ticket(%{
-      external_id: "slack_mention_#{ch}_#{ts}",
-      source: :slack,
-      subject: String.slice(text || "", 0..120),
-      body: text,
-      slack_channel_id: ch,
-      slack_thread_ts: ts
-    })
+    subject = String.slice(text || "Slack mention", 0..120)
+
+    case Tickets.open_ticket(subject, %{
+           external_id: "slack_mention_#{ch}_#{ts}",
+           source: :slack,
+           body: text,
+           slack_channel_id: ch,
+           slack_thread_ts: ts
+         }) do
+      {:ok, ticket} ->
+        SupportDeck.Workers.AITriageWorker.new(%{ticket_id: ticket.id}) |> Oban.insert()
+        SupportDeck.Tickets.RuleEngine.evaluate(ticket, :ticket_created)
+
+      _ ->
+        :ok
+    end
 
     :ok
   end

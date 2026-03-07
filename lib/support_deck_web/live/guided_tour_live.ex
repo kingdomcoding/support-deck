@@ -61,10 +61,6 @@ defmodule SupportDeckWeb.GuidedTourLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket) do
-      Phoenix.PubSub.subscribe(SupportDeck.PubSub, "tickets:updates")
-    end
-
     {:ok,
      socket
      |> assign(:page_title, "Guided Tour")
@@ -212,13 +208,13 @@ defmodule SupportDeckWeb.GuidedTourLive do
           >
             <.icon name="hero-play" class="size-3.5" /> {@step.action_label}
           </button>
-          <a
+          <.link
             :if={@result}
-            href={@step.result_link}
+            navigate={@step.result_link}
             class="px-3 py-1.5 text-sm text-primary hover:text-primary/80 inline-flex items-center gap-1.5"
           >
             {@step.result_link_label} <.icon name="hero-arrow-right" class="size-3.5" />
-          </a>
+          </.link>
         </div>
 
         <div :if={@result} class="mt-4 p-3 bg-success/10 rounded-lg border border-success/20">

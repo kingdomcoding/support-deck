@@ -6,6 +6,7 @@ defmodule SupportDeck.Application do
   @impl true
   def start(_type, _args) do
     :ets.new(:circuit_breakers, [:named_table, :public, :set])
+    SupportDeck.Observability.Telemetry.attach()
 
     children = [
       SupportDeckWeb.Telemetry,

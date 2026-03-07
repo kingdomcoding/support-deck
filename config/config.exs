@@ -47,18 +47,9 @@ config :support_deck, Oban,
   ]
 
 config :support_deck, :integrations,
-  front: [
-    api_token: System.get_env("FRONT_API_TOKEN"),
-    webhook_secret: System.get_env("FRONT_WEBHOOK_SECRET")
-  ],
-  slack: [
-    bot_token: System.get_env("SLACK_BOT_TOKEN"),
-    signing_secret: System.get_env("SLACK_SIGNING_SECRET")
-  ],
-  linear: [
-    api_key: System.get_env("LINEAR_API_KEY"),
-    webhook_secret: System.get_env("LINEAR_WEBHOOK_SECRET")
-  ]
+  front: [],
+  slack: [],
+  linear: []
 
 # Configure esbuild (the version is required)
 config :esbuild,

@@ -20,7 +20,10 @@ defmodule SupportDeck.Tickets.RuleEngine do
     Enum.any?(conditions, &evaluate_condition(ticket, &1))
   end
 
-  def matches?(_ticket, _), do: true
+  def matches?(_ticket, conditions) do
+    Logger.warning("rule_engine.malformed_conditions", conditions: inspect(conditions))
+    false
+  end
 
   defp evaluate_condition(ticket, %{"field" => field, "op" => op, "value" => value}) do
     ticket_val = get_field(ticket, field)
@@ -33,6 +36,11 @@ defmodule SupportDeck.Tickets.RuleEngine do
       "gt" -> is_number(ticket_val) and ticket_val > value
       _ -> false
     end
+  end
+
+  defp evaluate_condition(_ticket, condition) do
+    Logger.warning("rule_engine.unknown_condition", condition: inspect(condition))
+    false
   end
 
   defp get_field(ticket, "severity"), do: ticket.severity

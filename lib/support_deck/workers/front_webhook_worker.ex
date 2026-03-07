@@ -72,7 +72,7 @@ defmodule SupportDeck.Workers.FrontWebhookWorker do
     assignee_email = get_in(payload, ["target", "data", "email"])
 
     case Tickets.get_by_source(:front, conv_id) do
-      {:ok, ticket} -> Tickets.assign_ticket(ticket, %{assignee: assignee_email})
+      {:ok, ticket} -> Tickets.assign_ticket(ticket, assignee_email)
       _ -> :ok
     end
 
