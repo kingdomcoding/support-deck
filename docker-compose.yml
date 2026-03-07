@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: support_deck_dev
+      POSTGRES_DB: support_deck_prod
     ports:
       - "5432:5432"
     volumes:
@@ -23,13 +23,15 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "4500:4500"
+      - "127.0.0.1:4500:4500"
     environment:
-      DATABASE_URL: ecto://postgres:postgres@postgres/support_deck_dev
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-supersecretkeythatisatleast64byteslongforsecuritypurposeshere123}
-      PHX_HOST: localhost
+      DATABASE_URL: ecto://postgres:postgres@postgres/support_deck_prod
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      PHX_HOST: ${PHX_HOST:-supportdeck.josboxoffice.com}
+      PHX_SERVER: "true"
       PORT: "4500"
       POSTGRES_HOST: postgres
+      CREDENTIAL_VAULT_KEY: ${CREDENTIAL_VAULT_KEY}
     command: >
       sh -c "bin/migrate && bin/server"
 
