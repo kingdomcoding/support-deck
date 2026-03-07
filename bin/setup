@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mix deps.get
+mix ash.setup
+echo "Setup complete. Run: mix phx.server"
+echo "  App will be available at http://localhost:4500"

@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: support_deck_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "4500:4500"
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@postgres/support_deck_dev
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-supersecretkeythatisatleast64byteslongforsecuritypurposeshere123}
+      PHX_HOST: localhost
+      PORT: "4500"
+      POSTGRES_HOST: postgres
+    command: >
+      sh -c "bin/migrate && bin/server"
+
+volumes:
+  pgdata:

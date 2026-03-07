@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mix ash.reset
+echo "Reset complete. http://localhost:4500"
