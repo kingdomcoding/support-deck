@@ -1,6 +1,8 @@
 defmodule SupportDeckWeb.TicketQueueLive do
   use SupportDeckWeb, :live_view
 
+  alias SupportDeckWeb.ErrorHelpers
+
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
@@ -13,6 +15,7 @@ defmodule SupportDeckWeb.TicketQueueLive do
      |> assign(:current_path, ~p"/tickets")
      |> assign(:search, "")
      |> assign(:status_filter, nil)
+     |> assign(:show_create, false)
      |> load_tickets()}
   end
 
@@ -28,6 +31,37 @@ defmodule SupportDeckWeb.TicketQueueLive do
   def handle_event("filter_status", %{"status" => status}, socket) do
     {:noreply,
      socket |> assign(:status_filter, String.to_existing_atom(status)) |> load_tickets()}
+  end
+
+  def handle_event("new_ticket", _, socket) do
+    {:noreply, assign(socket, :show_create, true)}
+  end
+
+  def handle_event("close_create", _, socket) do
+    {:noreply, assign(socket, :show_create, false)}
+  end
+
+  def handle_event("create_ticket", params, socket) do
+    attrs = %{
+      external_id: "ui-#{System.unique_integer([:positive])}",
+      source: :manual,
+      body: params["body"],
+      severity: String.to_existing_atom(params["severity"]),
+      subscription_tier: String.to_existing_atom(params["tier"]),
+      customer_email: if(params["customer_email"] != "", do: params["customer_email"])
+    }
+
+    case SupportDeck.Tickets.open_ticket(params["subject"], attrs) do
+      {:ok, _ticket} ->
+        {:noreply,
+         socket
+         |> assign(:show_create, false)
+         |> put_flash(:info, "Ticket created")
+         |> load_tickets()}
+
+      {:error, err} ->
+        {:noreply, put_flash(socket, :error, ErrorHelpers.format_error(err))}
+    end
   end
 
   @impl true
@@ -69,6 +103,18 @@ defmodule SupportDeckWeb.TicketQueueLive do
     assign(socket, :tickets, filtered)
   end
 
+  defp relative_time(datetime) do
+    diff = DateTime.diff(DateTime.utc_now(), datetime, :second)
+
+    cond do
+      diff < 60 -> "just now"
+      diff < 3600 -> "#{div(diff, 60)}m ago"
+      diff < 86400 -> "#{div(diff, 3600)}h ago"
+      diff < 604_800 -> "#{div(diff, 86400)}d ago"
+      true -> Calendar.strftime(datetime, "%b %d")
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -79,22 +125,22 @@ defmodule SupportDeckWeb.TicketQueueLive do
         patterns={["AshStateMachine", "PubSub", "Named read actions"]}
       >
         <:actions>
-          <a
-            href={~p"/simulator"}
+          <button
+            phx-click="new_ticket"
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             + New Ticket
-          </a>
+          </button>
         </:actions>
       </.page_header>
 
       <div class="flex gap-4 mb-4">
-        <form phx-change="search" class="flex-1">
+        <form phx-change="search" phx-submit="search" class="flex-1">
           <input
             type="text"
             name="search"
             value={@search}
-            placeholder="Search tickets..."
+            placeholder="Search by subject or email..."
             class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100 text-base-content"
             phx-debounce="300"
           />
@@ -121,98 +167,140 @@ defmodule SupportDeckWeb.TicketQueueLive do
         class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
       >
         <p class="text-base-content/60">No tickets found.</p>
-        <a
-          href={~p"/simulator"}
+        <button
+          phx-click="new_ticket"
           class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
         >
-          Create your first ticket in the Simulator
-        </a>
+          Create your first ticket
+        </button>
       </div>
 
       <div
         :if={@tickets != []}
         class="bg-base-100 rounded-lg border border-base-300 overflow-hidden"
       >
-        <table class="min-w-full divide-y divide-base-300">
-          <thead class="bg-base-200">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
-                Subject
-              </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
-                Status
-              </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
-                Severity
-              </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
-                Source
-              </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
-                Assignee
-              </th>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-base-300 text-base-content/50 text-xs uppercase">
+              <th class="px-4 py-2.5 text-left font-medium">Subject</th>
+              <th class="px-4 py-2.5 text-left font-medium">State</th>
+              <th class="px-4 py-2.5 text-left font-medium">Severity</th>
+              <th class="px-4 py-2.5 text-left font-medium">Source</th>
+              <th class="px-4 py-2.5 text-left font-medium">Assignee</th>
+              <th class="px-4 py-2.5 text-left font-medium">Created</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-base-300">
-            <tr :for={ticket <- @tickets} class="hover:bg-base-200">
-              <td class="px-4 py-3">
+          <tbody>
+            <tr
+              :for={ticket <- @tickets}
+              class="border-b border-base-300/50 last:border-0 hover:bg-base-200/50 transition-colors"
+            >
+              <td class="px-4 py-2.5">
                 <a
                   href={~p"/tickets/#{ticket.id}"}
-                  class="text-primary hover:text-primary/80 font-medium text-sm"
+                  class="text-primary hover:underline font-medium"
                 >
                   {ticket.subject}
                 </a>
               </td>
-              <td class="px-4 py-3">
-                <.status_badge status={ticket.state} />
+              <td class="px-4 py-2.5">
+                <.state_pill state={ticket.state} />
               </td>
-              <td class="px-4 py-3">
-                <.severity_badge severity={ticket.severity} />
+              <td class="px-4 py-2.5">
+                <.severity_pill severity={ticket.severity} />
               </td>
-              <td class="px-4 py-3 text-sm text-base-content/60">{ticket.source}</td>
-              <td class="px-4 py-3 text-sm text-base-content/60">{ticket.assignee || "—"}</td>
+              <td class="px-4 py-2.5 text-base-content/60">{ticket.source}</td>
+              <td class="px-4 py-2.5 text-base-content/60">{ticket.assignee || "Unassigned"}</td>
+              <td class="px-4 py-2.5 text-base-content/40 text-xs">
+                {relative_time(ticket.inserted_at)}
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <div
+        :if={@show_create}
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      >
+        <div class="bg-base-100 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6" phx-click-away="close_create">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-base-content">New Ticket</h2>
+            <button phx-click="close_create" class="text-base-content/40 hover:text-base-content">
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+          <form phx-submit="create_ticket" class="space-y-3">
+            <div>
+              <label class="text-xs font-medium text-base-content/60 mb-1 block">Subject</label>
+              <input
+                type="text"
+                name="subject"
+                required
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+                placeholder="Brief description of the issue"
+              />
+            </div>
+            <div>
+              <label class="text-xs font-medium text-base-content/60 mb-1 block">Description</label>
+              <textarea
+                name="body"
+                rows="3"
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+                placeholder="Detailed description..."
+              ></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs font-medium text-base-content/60 mb-1 block">Severity</label>
+                <select
+                  name="severity"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+                >
+                  <option :for={s <- [:low, :medium, :high, :critical]} value={s}>{s}</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-base-content/60 mb-1 block">Tier</label>
+                <select
+                  name="tier"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+                >
+                  <option :for={t <- [:free, :pro, :team, :enterprise]} value={t}>{t}</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-base-content/60 mb-1 block">
+                Customer Email
+              </label>
+              <input
+                type="email"
+                name="customer_email"
+                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+                placeholder="customer@example.com"
+              />
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                phx-click="close_create"
+                class="px-3 py-1.5 text-sm border border-base-300 rounded-lg hover:bg-base-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+                phx-disable-with="Creating..."
+              >
+                Create Ticket
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-    """
-  end
-
-  defp status_badge(assigns) do
-    color =
-      case assigns.status do
-        :new -> "bg-info/15 text-info"
-        :triaging -> "bg-warning/15 text-warning"
-        :assigned -> "bg-success/15 text-success"
-        :waiting_on_customer -> "bg-warning/15 text-warning"
-        :escalated -> "bg-error/15 text-error"
-        :resolved -> "bg-base-content/10 text-base-content/60"
-        :closed -> "bg-base-content/5 text-base-content/40"
-        _ -> "bg-base-content/5 text-base-content/40"
-      end
-
-    assigns = assign(assigns, :color, color)
-
-    ~H"""
-    <span class={["px-2 py-1 text-xs rounded-full", @color]}>{@status}</span>
-    """
-  end
-
-  defp severity_badge(assigns) do
-    color =
-      case assigns.severity do
-        :critical -> "bg-error/15 text-error"
-        :high -> "bg-warning/15 text-warning"
-        :medium -> "bg-info/15 text-info"
-        :low -> "bg-base-content/10 text-base-content/60"
-        _ -> "bg-base-content/5 text-base-content/40"
-      end
-
-    assigns = assign(assigns, :color, color)
-
-    ~H"""
-    <span class={["px-2 py-1 text-xs rounded-full", @color]}>{@severity}</span>
     """
   end
 end
