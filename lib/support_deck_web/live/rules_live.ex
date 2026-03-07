@@ -24,6 +24,8 @@ defmodule SupportDeckWeb.RulesLive do
     |> assign(:mode, :index)
     |> assign(:selected_rule, nil)
     |> assign(:form_data, nil)
+    |> assign(:conditions, [])
+    |> assign(:actions_list, [])
   end
 
   defp apply_action(socket, :new, _params) do
@@ -31,12 +33,17 @@ defmodule SupportDeckWeb.RulesLive do
     |> assign(:mode, :new)
     |> assign(:selected_rule, nil)
     |> assign(:form_data, default_form())
+    |> assign(:conditions, [])
+    |> assign(:actions_list, [])
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     rule = Enum.find(socket.assigns.rules, &(&1.id == id))
 
     if rule do
+      conditions = extract_conditions(rule.conditions)
+      actions = if is_list(rule.actions_list), do: rule.actions_list, else: []
+
       socket
       |> assign(:mode, :edit)
       |> assign(:selected_rule, rule)
@@ -44,11 +51,11 @@ defmodule SupportDeckWeb.RulesLive do
         "name" => rule.name,
         "description" => rule.description || "",
         "trigger" => to_string(rule.trigger),
-        "conditions" => Jason.encode!(rule.conditions),
-        "actions_list" => Jason.encode!(rule.actions_list),
         "enabled" => to_string(rule.enabled),
         "priority" => to_string(rule.priority)
       })
+      |> assign(:conditions, conditions)
+      |> assign(:actions_list, actions)
     else
       socket
       |> put_flash(:error, "Rule not found")
@@ -58,13 +65,14 @@ defmodule SupportDeckWeb.RulesLive do
 
   defp apply_action(socket, _, _params), do: apply_action(socket, :index, %{})
 
+  defp extract_conditions(%{"all" => conds}) when is_list(conds), do: conds
+  defp extract_conditions(_), do: []
+
   defp default_form do
     %{
       "name" => "",
       "description" => "",
       "trigger" => "ticket_created",
-      "conditions" => ~s|{"all": []}|,
-      "actions_list" => "[]",
       "enabled" => "true",
       "priority" => "0"
     }
@@ -89,40 +97,71 @@ defmodule SupportDeckWeb.RulesLive do
     end
   end
 
+  def handle_event("add_condition", _, socket) do
+    conditions = socket.assigns.conditions ++ [%{"field" => "severity", "op" => "eq", "value" => ""}]
+    {:noreply, assign(socket, :conditions, conditions)}
+  end
+
+  def handle_event("remove_condition", %{"index" => i}, socket) do
+    conditions = List.delete_at(socket.assigns.conditions, String.to_integer(i))
+    {:noreply, assign(socket, :conditions, conditions)}
+  end
+
+  def handle_event("add_action", _, socket) do
+    actions = socket.assigns.actions_list ++ [%{"type" => "assign", "value" => ""}]
+    {:noreply, assign(socket, :actions_list, actions)}
+  end
+
+  def handle_event("remove_action", %{"index" => i}, socket) do
+    actions = List.delete_at(socket.assigns.actions_list, String.to_integer(i))
+    {:noreply, assign(socket, :actions_list, actions)}
+  end
+
   def handle_event("save", params, socket) do
-    with {:ok, conditions} <- Jason.decode(params["conditions"]),
-         {:ok, actions} <- Jason.decode(params["actions_list"]) do
-      attrs = %{
-        name: params["name"],
-        description: params["description"],
-        trigger: String.to_existing_atom(params["trigger"]),
-        conditions: conditions,
-        actions_list: actions,
-        enabled: params["enabled"] == "true",
-        priority: String.to_integer(params["priority"])
-      }
+    conditions = build_conditions(params["conditions"] || %{})
+    actions = build_actions(params["actions"] || %{})
 
-      result =
-        case socket.assigns.mode do
-          :new -> SupportDeck.Tickets.create_rule(attrs)
-          :edit -> SupportDeck.Tickets.update_rule(socket.assigns.selected_rule, attrs)
-        end
+    attrs = %{
+      name: params["name"],
+      description: params["description"],
+      trigger: String.to_existing_atom(params["trigger"]),
+      conditions: %{"all" => conditions},
+      actions_list: actions,
+      enabled: params["enabled"] == "true",
+      priority: String.to_integer(params["priority"])
+    }
 
-      case result do
-        {:ok, _} ->
-          {:noreply,
-           socket
-           |> put_flash(:info, "Rule saved")
-           |> load_rules()
-           |> push_patch(to: ~p"/rules")}
-
-        {:error, err} ->
-          {:noreply, put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
+    result =
+      case socket.assigns.mode do
+        :new -> SupportDeck.Tickets.create_rule(attrs)
+        :edit -> SupportDeck.Tickets.update_rule(socket.assigns.selected_rule, attrs)
       end
-    else
-      {:error, %Jason.DecodeError{} = err} ->
-        {:noreply, put_flash(socket, :error, "Invalid JSON: #{Exception.message(err)}")}
+
+    case result do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Rule saved")
+         |> load_rules()
+         |> push_patch(to: ~p"/rules")}
+
+      {:error, err} ->
+        {:noreply, put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
     end
+  end
+
+  defp build_conditions(params) when is_map(params) do
+    params
+    |> Enum.sort_by(fn {k, _} -> String.to_integer(k) end)
+    |> Enum.map(fn {_, v} -> %{"field" => v["field"], "op" => v["op"], "value" => v["value"]} end)
+    |> Enum.reject(fn c -> c["value"] == "" end)
+  end
+
+  defp build_actions(params) when is_map(params) do
+    params
+    |> Enum.sort_by(fn {k, _} -> String.to_integer(k) end)
+    |> Enum.map(fn {_, v} -> %{"type" => v["type"], "value" => v["value"]} end)
+    |> Enum.reject(fn a -> a["value"] == "" end)
   end
 
   defp load_rules(socket) do
@@ -197,28 +236,105 @@ defmodule SupportDeckWeb.RulesLive do
                 class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
               />
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-base-content/80 mb-1">
-                  Conditions (JSON)
-                </label>
-                <textarea
-                  name="conditions"
-                  rows="3"
-                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm font-mono bg-base-100"
-                >{@form_data["conditions"]}</textarea>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-base-content/80 mb-1">
-                  Actions (JSON)
-                </label>
-                <textarea
-                  name="actions_list"
-                  rows="3"
-                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm font-mono bg-base-100"
-                >{@form_data["actions_list"]}</textarea>
+
+            <div>
+              <label class="block text-xs font-medium text-base-content/80 mb-1">Conditions</label>
+              <div class="space-y-2 bg-base-200 p-3 rounded-lg">
+                <div
+                  :for={{cond_item, i} <- Enum.with_index(@conditions)}
+                  class="flex items-center gap-2"
+                >
+                  <select
+                    name={"conditions[#{i}][field]"}
+                    class="px-2 py-1.5 border border-base-300 rounded text-xs bg-base-100 flex-1"
+                  >
+                    <option
+                      :for={f <- ["severity", "source", "subscription_tier", "product_area"]}
+                      value={f}
+                      selected={cond_item["field"] == f}
+                    >
+                      {f}
+                    </option>
+                  </select>
+                  <select
+                    name={"conditions[#{i}][op]"}
+                    class="px-2 py-1.5 border border-base-300 rounded text-xs bg-base-100 w-20"
+                  >
+                    <option :for={op <- ["eq", "neq", "in"]} value={op} selected={cond_item["op"] == op}>
+                      {op}
+                    </option>
+                  </select>
+                  <input
+                    type="text"
+                    name={"conditions[#{i}][value]"}
+                    value={cond_item["value"]}
+                    class="px-2 py-1.5 border border-base-300 rounded text-xs bg-base-100 flex-1"
+                    placeholder="value"
+                  />
+                  <button
+                    type="button"
+                    phx-click="remove_condition"
+                    phx-value-index={i}
+                    class="text-error hover:text-error/80 p-1"
+                  >
+                    <.icon name="hero-x-mark" class="size-3.5" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  phx-click="add_condition"
+                  class="text-xs text-primary hover:text-primary/80 inline-flex items-center gap-1"
+                >
+                  <.icon name="hero-plus" class="size-3" /> Add condition
+                </button>
               </div>
             </div>
+
+            <div>
+              <label class="block text-xs font-medium text-base-content/80 mb-1">Actions</label>
+              <div class="space-y-2 bg-base-200 p-3 rounded-lg">
+                <div
+                  :for={{action_item, i} <- Enum.with_index(@actions_list)}
+                  class="flex items-center gap-2"
+                >
+                  <select
+                    name={"actions[#{i}][type]"}
+                    class="px-2 py-1.5 border border-base-300 rounded text-xs bg-base-100 flex-1"
+                  >
+                    <option
+                      :for={t <- ["assign", "set_severity", "set_product_area", "notify", "escalate"]}
+                      value={t}
+                      selected={action_item["type"] == t}
+                    >
+                      {t}
+                    </option>
+                  </select>
+                  <input
+                    type="text"
+                    name={"actions[#{i}][value]"}
+                    value={action_item["value"]}
+                    class="px-2 py-1.5 border border-base-300 rounded text-xs bg-base-100 flex-1"
+                    placeholder="value"
+                  />
+                  <button
+                    type="button"
+                    phx-click="remove_action"
+                    phx-value-index={i}
+                    class="text-error hover:text-error/80 p-1"
+                  >
+                    <.icon name="hero-x-mark" class="size-3.5" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  phx-click="add_action"
+                  class="text-xs text-primary hover:text-primary/80 inline-flex items-center gap-1"
+                >
+                  <.icon name="hero-plus" class="size-3" /> Add action
+                </button>
+              </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-base-content/80 mb-1">Priority</label>
@@ -244,6 +360,7 @@ defmodule SupportDeckWeb.RulesLive do
               <button
                 type="submit"
                 class="px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+                phx-disable-with="Saving..."
               >
                 Save
               </button>
