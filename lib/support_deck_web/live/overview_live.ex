@@ -7,22 +7,28 @@ defmodule SupportDeckWeb.OverviewLive do
       Phoenix.PubSub.subscribe(SupportDeck.PubSub, "tickets:updates")
     end
 
-    stats = load_stats()
-
     {:ok,
      socket
-     |> assign(:page_title, "Overview")
+     |> assign(:page_title, "Dashboard")
      |> assign(:current_path, ~p"/")
-     |> assign(:stats, stats)}
+     |> assign(:stats, load_stats())
+     |> assign(:recent_tickets, load_recent_tickets())
+     |> assign(:health, load_health())}
   end
 
   @impl true
   def handle_info({:ticket_created, _}, socket) do
-    {:noreply, assign(socket, :stats, load_stats())}
+    {:noreply,
+     socket
+     |> assign(:stats, load_stats())
+     |> assign(:recent_tickets, load_recent_tickets())}
   end
 
   def handle_info({:ticket_updated, _}, socket) do
-    {:noreply, assign(socket, :stats, load_stats())}
+    {:noreply,
+     socket
+     |> assign(:stats, load_stats())
+     |> assign(:recent_tickets, load_recent_tickets())}
   end
 
   def handle_info(_, socket), do: {:noreply, socket}
@@ -55,6 +61,31 @@ defmodule SupportDeckWeb.OverviewLive do
     %{open_tickets: open, sla_breaches: breaching, active_rules: rules, ai_triages_24h: triage}
   end
 
+  defp load_recent_tickets do
+    case SupportDeck.Tickets.list_open_tickets() do
+      {:ok, t} -> Enum.take(t, 5)
+      _ -> []
+    end
+  end
+
+  defp load_health do
+    Enum.map([:front, :slack, :linear], fn name ->
+      {name, SupportDeck.Integrations.CircuitBreaker.get_status(name)}
+    end)
+  end
+
+  defp relative_time(datetime) do
+    diff = DateTime.diff(DateTime.utc_now(), datetime, :second)
+
+    cond do
+      diff < 60 -> "just now"
+      diff < 3600 -> "#{div(diff, 60)}m ago"
+      diff < 86400 -> "#{div(diff, 3600)}h ago"
+      diff < 604_800 -> "#{div(diff, 86400)}d ago"
+      true -> Calendar.strftime(datetime, "%b %d")
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -74,63 +105,80 @@ defmodule SupportDeckWeb.OverviewLive do
         </:actions>
       </.page_header>
 
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <.stat_card label="Open Tickets" value={@stats.open_tickets} color="blue" />
-        <.stat_card label="SLA Breaches" value={@stats.sla_breaches} color="red" />
-        <.stat_card label="Active Rules" value={@stats.active_rules} color="green" />
-        <.stat_card label="AI Triages (24h)" value={@stats.ai_triages_24h} color="purple" />
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <.metric_card label="Open Tickets" value={@stats.open_tickets} icon="hero-inbox-stack" href={~p"/tickets"} variant="info" />
+        <.metric_card label="SLA Breaches" value={@stats.sla_breaches} icon="hero-exclamation-triangle" href={~p"/sla"} variant="error" />
+        <.metric_card label="Active Rules" value={@stats.active_rules} icon="hero-bolt" href={~p"/rules"} variant="success" />
+        <.metric_card label="AI Triages (24h)" value={@stats.ai_triages_24h} icon="hero-sparkles" href={~p"/ai"} variant="accent" />
       </div>
 
-      <h2 class="text-xl font-semibold text-base-content mb-4">Feature Map</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <.feature_card
-          title="Ticket Queue"
-          href={~p"/tickets"}
-          description="Real-time ticket management with state machine"
-          patterns={["AshStateMachine", "PubSub"]}
-        />
-        <.feature_card
-          title="SLA Dashboard"
-          href={~p"/sla"}
-          description="SLA breach tracking with countdown timers"
-          patterns={["AshOban triggers", "SLA Buddy"]}
-        />
-        <.feature_card
-          title="AI Triage"
-          href={~p"/ai"}
-          description="Automated classification and response drafting"
-          patterns={["Prompt-backed actions"]}
-        />
-        <.feature_card
-          title="Rules Engine"
-          href={~p"/rules"}
-          description="Configurable automation rules"
-          patterns={["Condition matching", "Oban workers"]}
-        />
-        <.feature_card
-          title="Knowledge Base"
-          href={~p"/knowledge"}
-          description="Searchable support documentation"
-          patterns={["Ash resources"]}
-        />
-        <.feature_card
-          title="Integrations"
-          href={~p"/integrations"}
-          description="Front, Slack, Linear with circuit breakers"
-          patterns={["Circuit breaker", "Req"]}
-        />
-        <.feature_card
-          title="Settings"
-          href={~p"/settings"}
-          description="Credential vault with AES-256-GCM encryption"
-          patterns={["GenServer", "ETS cache"]}
-        />
-        <.feature_card
-          title="Simulator"
-          href={~p"/simulator"}
-          description="Test webhooks, AI triage, and SLA checks"
-          patterns={["Dev tooling"]}
-        />
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 bg-base-100 rounded-lg border border-base-300 overflow-hidden">
+          <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-base-content">Recent Tickets</h2>
+            <a href={~p"/tickets"} class="text-xs text-primary hover:underline">View all</a>
+          </div>
+          <div :if={@recent_tickets == []} class="p-8 text-center text-base-content/50 text-sm">
+            No tickets yet.
+            <a href={~p"/simulator"} class="text-primary hover:underline">Create one in the Simulator</a>
+          </div>
+          <table :if={@recent_tickets != []} class="w-full text-sm">
+            <tbody>
+              <tr
+                :for={ticket <- @recent_tickets}
+                class="border-b border-base-300/50 last:border-0 hover:bg-base-200/50"
+              >
+                <td class="px-4 py-2.5">
+                  <a
+                    href={~p"/tickets/#{ticket.id}"}
+                    class="text-primary hover:underline font-medium"
+                  >
+                    {ticket.subject}
+                  </a>
+                  <p class="text-xs text-base-content/40 mt-0.5">
+                    {ticket.customer_email || "No email"} · {relative_time(ticket.inserted_at)}
+                  </p>
+                </td>
+                <td class="px-4 py-2.5 text-right">
+                  <.state_pill state={ticket.state} />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+            <h2 class="text-sm font-semibold text-base-content mb-3">System Health</h2>
+            <div class="space-y-2">
+              <.health_row :for={{name, status} <- @health} name={name} state={status.state} />
+            </div>
+          </div>
+
+          <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+            <h2 class="text-sm font-semibold text-base-content mb-3">Quick Actions</h2>
+            <div class="space-y-1.5">
+              <a
+                href={~p"/simulator"}
+                class="flex items-center gap-2 text-sm text-base-content/70 hover:text-base-content py-1"
+              >
+                <.icon name="hero-plus-circle" class="size-4 text-primary" /> Create Ticket
+              </a>
+              <a
+                href={~p"/rules"}
+                class="flex items-center gap-2 text-sm text-base-content/70 hover:text-base-content py-1"
+              >
+                <.icon name="hero-bolt" class="size-4 text-primary" /> Automation Rules
+              </a>
+              <a
+                href={~p"/settings"}
+                class="flex items-center gap-2 text-sm text-base-content/70 hover:text-base-content py-1"
+              >
+                <.icon name="hero-key" class="size-4 text-primary" /> Configure Credentials
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     """
@@ -138,48 +186,31 @@ defmodule SupportDeckWeb.OverviewLive do
 
   attr :label, :string, required: true
   attr :value, :integer, required: true
-  attr :color, :string, required: true
+  attr :icon, :string, required: true
+  attr :href, :string, required: true
+  attr :variant, :string, required: true
 
-  defp stat_card(assigns) do
-    color_classes = %{
-      "blue" => "text-info",
-      "red" => "text-error",
-      "green" => "text-success",
-      "purple" => "text-secondary"
+  defp metric_card(assigns) do
+    variant_classes = %{
+      "info" => "text-info",
+      "error" => "text-error",
+      "success" => "text-success",
+      "accent" => "text-accent"
     }
 
     assigns =
-      assign(assigns, :color_class, Map.get(color_classes, assigns.color, "text-base-content/60"))
+      assign(assigns, :variant_class, Map.get(variant_classes, assigns.variant, "text-base-content"))
 
-    ~H"""
-    <div class="bg-base-100 rounded-lg border border-base-300 p-4">
-      <p class="text-sm text-base-content/60">{@label}</p>
-      <p class={["text-2xl font-bold", @color_class]}>{@value}</p>
-    </div>
-    """
-  end
-
-  attr :title, :string, required: true
-  attr :href, :string, required: true
-  attr :description, :string, required: true
-  attr :patterns, :list, required: true
-
-  defp feature_card(assigns) do
     ~H"""
     <a
       href={@href}
-      class="block bg-base-100 rounded-lg border border-base-300 p-4 hover:border-primary/30 hover:shadow-sm transition"
+      class="bg-base-100 rounded-lg border border-base-300 p-4 hover:border-primary/30 transition group block"
     >
-      <h3 class="font-medium text-base-content">{@title}</h3>
-      <p class="text-sm text-base-content/60 mt-1">{@description}</p>
-      <div class="flex flex-wrap gap-1 mt-2">
-        <span
-          :for={p <- @patterns}
-          class="px-2 py-0.5 text-[11px] rounded-full bg-primary/10 text-primary border border-primary/20"
-        >
-          {p}
-        </span>
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs text-base-content/50">{@label}</span>
+        <.icon name={@icon} class={["size-4 opacity-60", @variant_class]} />
       </div>
+      <p class={["text-2xl font-bold", @variant_class]}>{@value}</p>
     </a>
     """
   end

@@ -511,6 +511,82 @@ defmodule SupportDeckWeb.CoreComponents do
     """
   end
 
+  attr :state, :atom, required: true
+
+  def state_pill(assigns) do
+    classes = %{
+      new: "bg-info/15 text-info",
+      triaging: "bg-warning/15 text-warning",
+      assigned: "bg-success/15 text-success",
+      waiting_on_customer: "bg-warning/15 text-warning",
+      escalated: "bg-error/15 text-error",
+      resolved: "bg-base-content/10 text-base-content/60",
+      closed: "bg-base-content/5 text-base-content/40"
+    }
+
+    assigns =
+      assign(assigns, :class, Map.get(classes, assigns.state, "bg-base-content/10 text-base-content/60"))
+
+    ~H"""
+    <span class={["inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full", @class]}>
+      {@state}
+    </span>
+    """
+  end
+
+  attr :severity, :atom, required: true
+
+  def severity_pill(assigns) do
+    classes = %{
+      critical: "bg-error/15 text-error",
+      high: "bg-warning/15 text-warning",
+      medium: "bg-info/15 text-info",
+      low: "bg-base-content/10 text-base-content/60"
+    }
+
+    assigns =
+      assign(assigns, :class, Map.get(classes, assigns.severity, "bg-base-content/10 text-base-content/60"))
+
+    ~H"""
+    <span class={["inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full", @class]}>
+      {@severity}
+    </span>
+    """
+  end
+
+  attr :name, :atom, required: true
+  attr :state, :atom, required: true
+
+  def health_row(assigns) do
+    color =
+      case assigns.state do
+        :closed -> "bg-success"
+        :open -> "bg-error"
+        :half_open -> "bg-warning"
+        _ -> "bg-base-content/40"
+      end
+
+    label =
+      case assigns.state do
+        :closed -> "Healthy"
+        :open -> "Failing"
+        :half_open -> "Testing"
+        _ -> to_string(assigns.state)
+      end
+
+    assigns = assigns |> assign(:color, color) |> assign(:label, label)
+
+    ~H"""
+    <div class="flex items-center justify-between py-1">
+      <span class="text-sm text-base-content/70 capitalize">{@name}</span>
+      <div class="flex items-center gap-1.5">
+        <span class={["inline-block w-2 h-2 rounded-full", @color]} />
+        <span class="text-xs text-base-content/50">{@label}</span>
+      </div>
+    </div>
+    """
+  end
+
   attr :title, :string, required: true
   attr :description, :string, required: true
   attr :patterns, :list, default: []
