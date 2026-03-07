@@ -251,6 +251,7 @@ defmodule SupportDeckWeb.SimulatorLive do
             <button
               type="submit"
               class="w-full px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+              phx-disable-with="Creating..."
             >
               Create Ticket
             </button>
@@ -283,6 +284,7 @@ defmodule SupportDeckWeb.SimulatorLive do
               <button
                 type="submit"
                 class="w-full px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+                phx-disable-with="Sending..."
               >
                 Send Webhook
               </button>
@@ -307,6 +309,7 @@ defmodule SupportDeckWeb.SimulatorLive do
               <button
                 type="submit"
                 class="w-full px-4 py-2 text-sm bg-secondary text-secondary-content rounded-lg hover:bg-secondary/90"
+                phx-disable-with="Queuing..."
               >
                 Run AI Triage
               </button>
@@ -317,6 +320,7 @@ defmodule SupportDeckWeb.SimulatorLive do
             <h2 class="text-lg font-semibold text-base-content mb-4">SLA Check</h2>
             <button
               phx-click="check_sla"
+              phx-disable-with="Checking..."
               class="w-full px-4 py-2 text-sm bg-warning text-warning-content rounded-lg hover:bg-warning/90"
             >
               Run SLA Check

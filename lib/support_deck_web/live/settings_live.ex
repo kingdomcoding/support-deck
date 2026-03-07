@@ -183,6 +183,7 @@ defmodule SupportDeckWeb.SettingsLive do
                     <button
                       type="submit"
                       class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+                      phx-disable-with="Saving..."
                     >
                       Save
                     </button>

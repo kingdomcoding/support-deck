@@ -176,6 +176,7 @@ defmodule SupportDeckWeb.GuidedTourLive do
 
         <button
           phx-click="run_step"
+          phx-disable-with="Running..."
           class="px-4 py-2 bg-primary text-primary-content rounded-lg hover:bg-primary/90"
         >
           Run This Step

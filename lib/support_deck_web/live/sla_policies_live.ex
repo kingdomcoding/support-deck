@@ -155,6 +155,7 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                         <button
                           type="submit"
                           class="px-2 py-0.5 text-[10px] bg-primary text-primary-content rounded"
+                          phx-disable-with="..."
                         >
                           Save
                         </button>
