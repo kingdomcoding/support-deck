@@ -64,17 +64,25 @@ defmodule SupportDeckWeb.SimulatorLive do
     payload = params["payload"]
 
     case Jason.decode(payload) do
-      {:ok, _} ->
-        {:noreply,
-         assign(
-           socket,
-           :result,
-           {:ok,
-            "Webhook payload for #{source} would be sent to /webhooks/#{source}. Use curl or an HTTP client to POST the payload."}
-         )}
+      {:ok, decoded} ->
+        port =
+          Application.get_env(:support_deck, SupportDeckWeb.Endpoint)[:http][:port] || 4500
 
-      {:error, err} ->
-        {:noreply, assign(socket, :result, {:error, "Invalid JSON: #{ErrorHelpers.format_error(err)}"})}
+        url = "http://localhost:#{port}/webhooks/#{source}"
+
+        case Req.post(url, json: decoded) do
+          {:ok, %{status: status}} ->
+            {:noreply,
+             assign(socket, :result, {:ok, "Webhook sent to /webhooks/#{source} — HTTP #{status}"})}
+
+          {:error, err} ->
+            {:noreply,
+             assign(socket, :result, {:error, "Webhook failed: #{inspect(err)}"})}
+        end
+
+      {:error, %Jason.DecodeError{} = err} ->
+        {:noreply,
+         assign(socket, :result, {:error, "Invalid JSON: #{Exception.message(err)}"})}
     end
   end
 
