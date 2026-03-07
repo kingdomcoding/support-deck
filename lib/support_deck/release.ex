@@ -15,14 +15,8 @@ defmodule SupportDeck.Release do
   end
 
   def seed do
-    load_app()
-
-    for repo <- repos() do
-      {:ok, _, _} =
-        Ecto.Migrator.with_repo(repo, fn _repo ->
-          Code.eval_file(Path.join(:code.priv_dir(@app) |> to_string(), "repo/seeds.exs"))
-        end)
-    end
+    seed_file = Path.join(:code.priv_dir(@app) |> to_string(), "repo/seeds.exs")
+    Code.eval_file(seed_file)
   end
 
   defp repos do
