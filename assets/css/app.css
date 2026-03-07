@@ -103,3 +103,76 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+/* Driver.js tour popover — daisyUI theme-aware overrides */
+.tour-popover {
+  background: oklch(var(--color-base-100)) !important;
+  color: oklch(var(--color-base-content)) !important;
+  border: 1px solid oklch(var(--color-base-300)) !important;
+  border-radius: var(--radius-box) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+.tour-popover .driver-popover-arrow-side-left,
+.tour-popover .driver-popover-arrow-side-right,
+.tour-popover .driver-popover-arrow-side-top,
+.tour-popover .driver-popover-arrow-side-bottom {
+  background: oklch(var(--color-base-100)) !important;
+  border: 1px solid oklch(var(--color-base-300)) !important;
+}
+
+.tour-popover .driver-popover-title {
+  color: oklch(var(--color-base-content)) !important;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.tour-popover .driver-popover-description {
+  color: oklch(var(--color-base-content) / 0.75) !important;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.tour-popover .driver-popover-footer {
+  border-top: 1px solid oklch(var(--color-base-300) / 0.5) !important;
+  margin-top: 0.75rem !important;
+  padding-top: 0.75rem !important;
+}
+
+.tour-popover .driver-popover-next-btn {
+  background: oklch(var(--color-primary)) !important;
+  color: oklch(var(--color-primary-content)) !important;
+  border: none !important;
+  border-radius: var(--radius-field) !important;
+  padding: 0.375rem 0.875rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+.tour-popover .driver-popover-prev-btn {
+  background: oklch(var(--color-base-200)) !important;
+  color: oklch(var(--color-base-content)) !important;
+  border: 1px solid oklch(var(--color-base-300)) !important;
+  border-radius: var(--radius-field) !important;
+  padding: 0.375rem 0.875rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+.tour-popover .driver-popover-close-btn {
+  color: oklch(var(--color-base-content) / 0.5) !important;
+}
+
+.tour-popover .driver-popover-close-btn:hover {
+  color: oklch(var(--color-base-content)) !important;
+}
+
+.tour-progress {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: oklch(var(--color-base-content) / 0.4);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
