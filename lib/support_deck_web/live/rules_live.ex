@@ -137,6 +137,28 @@ defmodule SupportDeckWeb.RulesLive do
     conditions = build_conditions(params["conditions"] || %{})
     actions = build_actions(params["actions"] || %{})
 
+    cond do
+      params["name"] == "" ->
+        {:noreply, put_flash(socket, :error, "Name is required")}
+
+      actions == [] ->
+        {:noreply, put_flash(socket, :error, "At least one action is required")}
+
+      Enum.any?(actions, fn a -> a["type"] == "" end) ->
+        {:noreply, put_flash(socket, :error, "All actions must have a type")}
+
+      true ->
+        save_rule(socket, params, conditions, actions)
+    end
+  end
+
+  defp save_rule(socket, params, conditions, actions) do
+    priority =
+      case Integer.parse(params["priority"] || "0") do
+        {n, _} -> n
+        :error -> 0
+      end
+
     attrs = %{
       name: params["name"],
       description: params["description"],
@@ -144,7 +166,7 @@ defmodule SupportDeckWeb.RulesLive do
       conditions: %{"all" => conditions},
       actions_list: actions,
       enabled: params["enabled"] == "true",
-      priority: String.to_integer(params["priority"])
+      priority: priority
     }
 
     result =
