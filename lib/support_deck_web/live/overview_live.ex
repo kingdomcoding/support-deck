@@ -92,7 +92,7 @@ defmodule SupportDeckWeb.OverviewLive do
       >
         <:actions>
           <.link
-            navigate={~p"/tour"}
+            navigate={~p"/?tour=1"}
             class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
             <.icon name="hero-play-circle" class="size-4" /> Guided Tour

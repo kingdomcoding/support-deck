@@ -34,6 +34,7 @@ defmodule SupportDeckWeb.Layouts do
               current={assigns[:current_path]}
               icon="hero-squares-2x2"
               label="Dashboard"
+              tour="dashboard"
             />
             <.nav_item
               path={~p"/tickets"}
@@ -41,6 +42,7 @@ defmodule SupportDeckWeb.Layouts do
               icon="hero-inbox-stack"
               label="Tickets"
               badge={assigns[:ticket_count]}
+              tour="tickets"
             />
             <.nav_item
               path={~p"/sla"}
@@ -49,6 +51,7 @@ defmodule SupportDeckWeb.Layouts do
               label="SLA Monitor"
               badge={assigns[:breach_count]}
               badge_variant="error"
+              tour="sla"
             />
           </div>
 
@@ -61,6 +64,7 @@ defmodule SupportDeckWeb.Layouts do
               current={assigns[:current_path]}
               icon="hero-sparkles"
               label="AI Triage"
+              tour="ai"
             />
             <.nav_item
               path={~p"/rules"}
@@ -69,6 +73,7 @@ defmodule SupportDeckWeb.Layouts do
               label="Automation"
               badge={assigns[:rule_count]}
               badge_variant="neutral"
+              tour="rules"
             />
             <.nav_item
               path={~p"/knowledge"}
@@ -87,29 +92,32 @@ defmodule SupportDeckWeb.Layouts do
               current={assigns[:current_path]}
               icon="hero-puzzle-piece"
               label="Integrations"
+              tour="integrations"
             />
             <.nav_item
               path={~p"/settings"}
               current={assigns[:current_path]}
               icon="hero-cog-6-tooth"
               label="Settings"
+              tour="settings"
             />
             <.nav_item
               path={~p"/simulator"}
               current={assigns[:current_path]}
               icon="hero-beaker"
               label="Simulator"
+              tour="simulator"
             />
           </div>
         </div>
 
-        <div class="p-3 border-t border-base-300 flex items-center justify-between">
-          <.link
-            navigate={~p"/tour"}
+        <div id="tour-hook" phx-hook="TourHook" class="p-3 border-t border-base-300 flex items-center justify-between">
+          <button
+            id="start-tour-btn"
             class="flex items-center gap-1.5 text-sm text-primary hover:underline"
           >
             <.icon name="hero-play-circle" class="size-4" /> Tour
-          </.link>
+          </button>
           <button
             onclick="const html = document.documentElement; const current = html.getAttribute('data-theme'); const next = current === 'dark' ? 'light' : 'dark'; html.setAttribute('data-theme', next); localStorage.setItem('phx:theme', next);"
             class="p-1.5 rounded-md text-base-content/50 hover:text-base-content hover:bg-base-200 transition"
