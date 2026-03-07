@@ -86,10 +86,10 @@ defmodule SupportDeckWeb.AIDashboardLive do
             Refresh
           </button>
           <.link
-            navigate={~p"/simulator"}
+            navigate={~p"/tickets"}
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
-            Trigger Triage
+            Select Ticket
           </.link>
         </:actions>
       </.page_header>
@@ -114,10 +114,10 @@ defmodule SupportDeckWeb.AIDashboardLive do
         >
           <p class="text-base-content/60">No triage results yet.</p>
           <.link
-            navigate={~p"/simulator"}
+            navigate={~p"/tickets"}
             class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
           >
-            Run a triage in the Simulator
+            Select a ticket to run triage
           </.link>
         </div>
         <table :if={@results != []} class="min-w-full divide-y divide-base-300">

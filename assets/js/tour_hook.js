@@ -105,8 +105,18 @@ const TOUR = [
         popover: {
           title: "Circuit Breakers",
           description:
-            "ETS-backed GenServer breakers for Front, Slack, and Linear. They auto-trip after consecutive failures and recover via half-open probes.",
+            "ETS-backed GenServer breakers for Front, Slack, and Linear. Trip one to simulate failures, then reset it and watch the state recover.",
           side: "bottom",
+          align: "center",
+        },
+      },
+      {
+        element: "[data-tour='webhook-test']",
+        popover: {
+          title: "Webhook Test",
+          description:
+            "Send a JSON payload to any integration\u2019s webhook endpoint. The worker parses it and creates or updates tickets automatically.",
+          side: "top",
           align: "center",
         },
       },
@@ -123,41 +133,6 @@ const TOUR = [
             "API keys are encrypted with AES-256-GCM before storage. A GenServer resolver caches decrypted values in ETS for fast lookups.",
           side: "top",
           align: "center",
-        },
-      },
-    ],
-  },
-  {
-    path: "/simulator",
-    steps: [
-      {
-        element: "[data-tour='sim-create']",
-        popover: {
-          title: "Try the Pipeline",
-          description:
-            "Create a ticket here to see the full flow \u2014 AI triage, rule evaluation, SLA tracking, and PubSub broadcasts all fire automatically.",
-          side: "right",
-          align: "start",
-        },
-      },
-      {
-        element: "[data-tour='sim-webhook']",
-        popover: {
-          title: "Webhook Simulation",
-          description:
-            "Paste a JSON payload and send it to the Front, Slack, or Linear webhook endpoint. The worker parses it and creates or updates tickets.",
-          side: "left",
-          align: "start",
-        },
-      },
-      {
-        element: "[data-tour='sim-breakers']",
-        popover: {
-          title: "Fault Tolerance",
-          description:
-            "Trip a circuit breaker to simulate API failures, then reset it. Watch the Integration Health page reflect the state change in real-time.",
-          side: "left",
-          align: "start",
         },
       },
     ],

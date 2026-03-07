@@ -49,7 +49,7 @@ defmodule SupportDeckWeb.Router do
       live "/rules/new", RulesLive, :new
       live "/rules/:id/edit", RulesLive, :edit
       live "/knowledge", KnowledgeLive, :index
-      live "/simulator", SimulatorLive, :index
+
       live "/settings", SettingsLive, :index
     end
   end

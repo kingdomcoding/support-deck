@@ -139,8 +139,8 @@ defmodule SupportDeckWeb.OverviewLive do
           </div>
           <div :if={@recent_tickets == []} class="p-8 text-center text-base-content/50 text-sm">
             No tickets yet.
-            <.link navigate={~p"/simulator"} class="text-primary hover:underline">
-              Create one in the Simulator
+            <.link navigate={~p"/tickets"} class="text-primary hover:underline">
+              Create your first ticket
             </.link>
           </div>
           <table :if={@recent_tickets != []} class="w-full text-sm">
@@ -180,7 +180,7 @@ defmodule SupportDeckWeb.OverviewLive do
             <h2 class="text-sm font-semibold text-base-content mb-3">Quick Actions</h2>
             <div class="space-y-1.5">
               <.link
-                navigate={~p"/simulator"}
+                navigate={~p"/tickets"}
                 class="flex items-center gap-2 text-sm text-base-content/70 hover:text-base-content py-1"
               >
                 <.icon name="hero-plus-circle" class="size-4 text-primary" /> Create Ticket

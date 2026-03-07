@@ -101,13 +101,6 @@ defmodule SupportDeckWeb.Layouts do
               label="Settings"
               tour="settings"
             />
-            <.nav_item
-              path={~p"/simulator"}
-              current={assigns[:current_path]}
-              icon="hero-beaker"
-              label="Simulator"
-              tour="simulator"
-            />
           </div>
         </div>
 
