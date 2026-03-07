@@ -34,7 +34,7 @@ defmodule SupportDeck.Workers.FrontWebhookWorker do
 
     case Tickets.upsert_ticket(attrs) do
       {:ok, ticket} ->
-        if ticket.status == :new do
+        if ticket.state == :new do
           %{"ticket_id" => ticket.id}
           |> SupportDeck.Workers.AITriageWorker.new()
           |> Oban.insert()

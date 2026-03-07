@@ -36,7 +36,8 @@ defmodule SupportDeck.Tickets.RuleEngine do
   end
 
   defp get_field(ticket, "severity"), do: ticket.severity
-  defp get_field(ticket, "status"), do: ticket.status
+  defp get_field(ticket, "state"), do: ticket.state
+  defp get_field(ticket, "status"), do: ticket.state
   defp get_field(ticket, "product_area"), do: ticket.product_area
   defp get_field(ticket, "subscription_tier"), do: ticket.subscription_tier
   defp get_field(ticket, "assignee"), do: ticket.assignee
