@@ -8,8 +8,12 @@ defmodule SupportDeckWeb.Plugs.WebhookSignature do
     signature = get_req_header(conn, "x-front-signature") |> List.first()
 
     case {secret, signature} do
-      {nil, _} -> skip_in_dev()
-      {_, nil} -> {:error, :invalid_signature}
+      {nil, _} ->
+        skip_in_dev()
+
+      {_, nil} ->
+        {:error, :invalid_signature}
+
       {s, sig} ->
         expected = :crypto.mac(:hmac, :sha, s, conn.assigns[:raw_body]) |> Base.encode64()
         if Plug.Crypto.secure_compare(expected, sig), do: :ok, else: {:error, :invalid_signature}
@@ -23,7 +27,9 @@ defmodule SupportDeckWeb.Plugs.WebhookSignature do
 
     with :ok <- check_timestamp_freshness(timestamp),
          base_string = "v0:#{timestamp}:#{conn.assigns[:raw_body]}",
-         expected = "v0=" <> (:crypto.mac(:hmac, :sha256, secret, base_string) |> Base.encode16(case: :lower)),
+         expected =
+           "v0=" <>
+             (:crypto.mac(:hmac, :sha256, secret, base_string) |> Base.encode16(case: :lower)),
          true <- Plug.Crypto.secure_compare(expected, signature || "") do
       :ok
     else
@@ -36,15 +42,22 @@ defmodule SupportDeckWeb.Plugs.WebhookSignature do
     signature = get_req_header(conn, "linear-signature") |> List.first()
 
     case {secret, signature} do
-      {nil, _} -> skip_in_dev()
-      {_, nil} -> {:error, :invalid_signature}
+      {nil, _} ->
+        skip_in_dev()
+
+      {_, nil} ->
+        {:error, :invalid_signature}
+
       {s, sig} ->
-        expected = :crypto.mac(:hmac, :sha256, s, conn.assigns[:raw_body]) |> Base.encode16(case: :lower)
+        expected =
+          :crypto.mac(:hmac, :sha256, s, conn.assigns[:raw_body]) |> Base.encode16(case: :lower)
+
         if Plug.Crypto.secure_compare(expected, sig), do: :ok, else: {:error, :invalid_signature}
     end
   end
 
   defp check_timestamp_freshness(nil), do: {:error, :missing_timestamp}
+
   defp check_timestamp_freshness(timestamp_str) do
     ts = String.to_integer(timestamp_str)
     now = System.system_time(:second)

@@ -31,15 +31,18 @@ defmodule SupportDeck.Workers.SLANotifier do
 
   defp escalation_target(tier, level) do
     channel = "#support-escalations"
-    mention = case {tier, level} do
-      {:enterprise, 1} -> "cc: support engineers"
-      {:enterprise, 2} -> "cc: @on-shift specialist"
-      {:enterprise, 3} -> "cc: <!subteam^support-group>"
-      {:enterprise, _} -> "cc: @head-of-success"
-      {_, 1} -> ""
-      {_, 2} -> "cc: @on-shift specialist"
-      {_, _} -> "cc: <!subteam^support-group>"
-    end
+
+    mention =
+      case {tier, level} do
+        {:enterprise, 1} -> "cc: support engineers"
+        {:enterprise, 2} -> "cc: @on-shift specialist"
+        {:enterprise, 3} -> "cc: <!subteam^support-group>"
+        {:enterprise, _} -> "cc: @head-of-success"
+        {_, 1} -> ""
+        {_, 2} -> "cc: @on-shift specialist"
+        {_, _} -> "cc: <!subteam^support-group>"
+      end
+
     {channel, mention}
   end
 end

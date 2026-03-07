@@ -24,24 +24,79 @@ defmodule SupportDeckWeb.Layouts do
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Monitor</p>
           </div>
           <.nav_link path={~p"/"} current={assigns[:current_path]} label="Overview" icon="hero-home" />
-          <.nav_link path={~p"/tickets"} current={assigns[:current_path]} label="Tickets" icon="hero-inbox" badge={assigns[:ticket_count]} />
-          <.nav_link path={~p"/sla"} current={assigns[:current_path]} label="SLA Dashboard" icon="hero-clock" badge={assigns[:breach_count]} badge_color="red" />
-          <.nav_link path={~p"/ai"} current={assigns[:current_path]} label="AI Performance" icon="hero-cpu-chip" />
-          <.nav_link path={~p"/integrations"} current={assigns[:current_path]} label="Integrations" icon="hero-puzzle-piece" />
+          <.nav_link
+            path={~p"/tickets"}
+            current={assigns[:current_path]}
+            label="Tickets"
+            icon="hero-inbox"
+            badge={assigns[:ticket_count]}
+          />
+          <.nav_link
+            path={~p"/sla"}
+            current={assigns[:current_path]}
+            label="SLA Dashboard"
+            icon="hero-clock"
+            badge={assigns[:breach_count]}
+            badge_color="red"
+          />
+          <.nav_link
+            path={~p"/ai"}
+            current={assigns[:current_path]}
+            label="AI Performance"
+            icon="hero-cpu-chip"
+          />
+          <.nav_link
+            path={~p"/integrations"}
+            current={assigns[:current_path]}
+            label="Integrations"
+            icon="hero-puzzle-piece"
+          />
 
           <div class="px-3 mt-6 mb-2">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Configure</p>
           </div>
-          <.nav_link path={~p"/rules"} current={assigns[:current_path]} label="Rules" icon="hero-bolt" badge={assigns[:rule_count]} badge_color="gray" />
-          <.nav_link path={~p"/sla/policies"} current={assigns[:current_path]} label="SLA Policies" icon="hero-shield-check" />
-          <.nav_link path={~p"/knowledge"} current={assigns[:current_path]} label="Knowledge Base" icon="hero-book-open" />
-          <.nav_link path={~p"/settings"} current={assigns[:current_path]} label="Settings" icon="hero-cog-6-tooth" />
+          <.nav_link
+            path={~p"/rules"}
+            current={assigns[:current_path]}
+            label="Rules"
+            icon="hero-bolt"
+            badge={assigns[:rule_count]}
+            badge_color="gray"
+          />
+          <.nav_link
+            path={~p"/sla/policies"}
+            current={assigns[:current_path]}
+            label="SLA Policies"
+            icon="hero-shield-check"
+          />
+          <.nav_link
+            path={~p"/knowledge"}
+            current={assigns[:current_path]}
+            label="Knowledge Base"
+            icon="hero-book-open"
+          />
+          <.nav_link
+            path={~p"/settings"}
+            current={assigns[:current_path]}
+            label="Settings"
+            icon="hero-cog-6-tooth"
+          />
 
           <div class="px-3 mt-6 mb-2">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Test</p>
           </div>
-          <.nav_link path={~p"/simulator"} current={assigns[:current_path]} label="Simulator" icon="hero-beaker" />
-          <.nav_link path={~p"/tour"} current={assigns[:current_path]} label="Guided Tour" icon="hero-map" />
+          <.nav_link
+            path={~p"/simulator"}
+            current={assigns[:current_path]}
+            label="Simulator"
+            icon="hero-beaker"
+          />
+          <.nav_link
+            path={~p"/tour"}
+            current={assigns[:current_path]}
+            label="Guided Tour"
+            icon="hero-map"
+          />
         </div>
 
         <div class="p-4 border-t border-gray-200">

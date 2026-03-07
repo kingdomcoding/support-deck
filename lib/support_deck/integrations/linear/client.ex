@@ -130,7 +130,8 @@ defmodule SupportDeck.Integrations.Linear.Client do
       {:ok, %{status: 200, body: %{"errors" => errors}}} ->
         {:error, errors}
 
-      {:ok, %{status: 400, body: %{"errors" => [%{"extensions" => %{"code" => "RATELIMITED"}} | _]}}} ->
+      {:ok,
+       %{status: 400, body: %{"errors" => [%{"extensions" => %{"code" => "RATELIMITED"}} | _]}}} ->
         {:error, {:rate_limited, 60}}
 
       {:ok, %{status: s, body: b}} ->

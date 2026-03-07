@@ -26,12 +26,12 @@ defmodule SupportDeck.Tickets.RuleEngine do
     ticket_val = get_field(ticket, field)
 
     case op do
-      "eq"       -> to_string(ticket_val) == value
-      "neq"      -> to_string(ticket_val) != value
+      "eq" -> to_string(ticket_val) == value
+      "neq" -> to_string(ticket_val) != value
       "contains" -> is_binary(ticket_val) and String.contains?(ticket_val, value)
-      "in"       -> to_string(ticket_val) in List.wrap(value)
-      "gt"       -> is_number(ticket_val) and ticket_val > value
-      _          -> false
+      "in" -> to_string(ticket_val) in List.wrap(value)
+      "gt" -> is_number(ticket_val) and ticket_val > value
+      _ -> false
     end
   end
 

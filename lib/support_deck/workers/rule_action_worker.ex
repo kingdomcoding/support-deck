@@ -16,26 +16,31 @@ defmodule SupportDeck.Workers.RuleActionWorker do
 
       "linear_create" ->
         case Integrations.Linear.Client.create_issue(%{
-          title: "[Support] #{ticket.subject}",
-          description: "**Customer:** #{ticket.customer_email}\n**Severity:** #{ticket.severity}\n**Tier:** #{ticket.subscription_tier}\n\n---\n\n#{ticket.body}",
-          team_id: params["team_id"],
-          priority: params["priority"] || 4,
-          label_ids: params["label_ids"]
-        }) do
+               title: "[Support] #{ticket.subject}",
+               description:
+                 "**Customer:** #{ticket.customer_email}\n**Severity:** #{ticket.severity}\n**Tier:** #{ticket.subscription_tier}\n\n---\n\n#{ticket.body}",
+               team_id: params["team_id"],
+               priority: params["priority"] || 4,
+               label_ids: params["label_ids"]
+             }) do
           {:ok, %{"id" => issue_id, "identifier" => identifier}} ->
             Tickets.link_linear_issue(ticket, issue_id)
+
             Integrations.Linear.Client.create_attachment(issue_id, %{
               title: "Support Ticket ##{ticket.id |> String.slice(0..7)}",
               subtitle: "#{ticket.severity} — #{ticket.subscription_tier}",
               url: "#{SupportDeckWeb.Endpoint.url()}/tickets/#{ticket.id}",
               metadata: %{ticket_id: ticket.id, source: to_string(ticket.source)}
             })
+
             Tickets.log_activity(
               ticket.id,
               "Created Linear issue #{identifier}",
               "system"
             )
-          error -> error
+
+          error ->
+            error
         end
 
       "assign" ->

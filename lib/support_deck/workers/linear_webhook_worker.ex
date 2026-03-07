@@ -20,7 +20,9 @@ defmodule SupportDeck.Workers.LinearWebhookWorker do
     :ok
   end
 
-  def perform(%Oban.Job{args: %{"payload" => %{"type" => "Comment", "action" => "create"} = payload}}) do
+  def perform(%Oban.Job{
+        args: %{"payload" => %{"type" => "Comment", "action" => "create"} = payload}
+      }) do
     issue_id = get_in(payload, ["data", "issueId"])
 
     case Tickets.get_by_linear_issue(issue_id) do
@@ -34,7 +36,8 @@ defmodule SupportDeck.Workers.LinearWebhookWorker do
           "linear_sync"
         )
 
-      _ -> :ok
+      _ ->
+        :ok
     end
 
     :ok
@@ -48,10 +51,14 @@ defmodule SupportDeck.Workers.LinearWebhookWorker do
 
     case state_type do
       "completed" ->
-        Tickets.resolve_ticket(ticket, %{resolution_note: "Resolved via Linear issue #{get_in(payload, ["data", "identifier"])}"})
+        Tickets.resolve_ticket(ticket, %{
+          resolution_note: "Resolved via Linear issue #{get_in(payload, ["data", "identifier"])}"
+        })
 
       "canceled" ->
-        Tickets.resolve_ticket(ticket, %{resolution_note: "Linear issue #{get_in(payload, ["data", "identifier"])} was canceled"})
+        Tickets.resolve_ticket(ticket, %{
+          resolution_note: "Linear issue #{get_in(payload, ["data", "identifier"])} was canceled"
+        })
 
       _ ->
         Logger.debug("linear.issue.state_change", state: state_name, ticket_id: ticket.id)

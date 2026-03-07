@@ -31,7 +31,12 @@ defmodule SupportDeckWeb.KnowledgeLive do
      socket
      |> assign(:mode, :new)
      |> assign(:selected_doc, nil)
-     |> assign(:form_data, %{"content" => "", "content_type" => "doc", "source_url" => "", "metadata" => "{}"})}
+     |> assign(:form_data, %{
+       "content" => "",
+       "content_type" => "doc",
+       "source_url" => "",
+       "metadata" => "{}"
+     })}
   end
 
   def handle_event("edit", %{"id" => id}, socket) do
@@ -50,25 +55,27 @@ defmodule SupportDeckWeb.KnowledgeLive do
   end
 
   def handle_event("cancel", _, socket) do
-    {:noreply, socket |> assign(:mode, :index) |> assign(:selected_doc, nil) |> assign(:form_data, nil)}
+    {:noreply,
+     socket |> assign(:mode, :index) |> assign(:selected_doc, nil) |> assign(:form_data, nil)}
   end
 
   def handle_event("save", params, socket) do
-    result = case socket.assigns.mode do
-      :new ->
-        SupportDeck.AI.add_knowledge_doc(%{
-          content: params["content"],
-          content_type: String.to_existing_atom(params["content_type"]),
-          source_url: if(params["source_url"] != "", do: params["source_url"]),
-          metadata: Jason.decode!(params["metadata"])
-        })
+    result =
+      case socket.assigns.mode do
+        :new ->
+          SupportDeck.AI.add_knowledge_doc(%{
+            content: params["content"],
+            content_type: String.to_existing_atom(params["content_type"]),
+            source_url: if(params["source_url"] != "", do: params["source_url"]),
+            metadata: Jason.decode!(params["metadata"])
+          })
 
-      :edit ->
-        SupportDeck.AI.update_knowledge_doc(socket.assigns.selected_doc, %{
-          content: params["content"],
-          metadata: Jason.decode!(params["metadata"])
-        })
-    end
+        :edit ->
+          SupportDeck.AI.update_knowledge_doc(socket.assigns.selected_doc, %{
+            content: params["content"],
+            metadata: Jason.decode!(params["metadata"])
+          })
+      end
 
     case result do
       {:ok, _} ->
@@ -95,15 +102,17 @@ defmodule SupportDeckWeb.KnowledgeLive do
   end
 
   defp load_docs(socket) do
-    docs = case SupportDeck.AI.list_all_knowledge_docs() do
-      {:ok, d} -> d
-      _ -> []
-    end
+    docs =
+      case SupportDeck.AI.list_all_knowledge_docs() do
+        {:ok, d} -> d
+        _ -> []
+      end
 
-    filtered = case socket.assigns[:filter_type] do
-      nil -> docs
-      type -> Enum.filter(docs, &(&1.content_type == type))
-    end
+    filtered =
+      case socket.assigns[:filter_type] do
+        nil -> docs
+        type -> Enum.filter(docs, &(&1.content_type == type))
+      end
 
     assign(socket, :docs, filtered)
   end
@@ -116,7 +125,11 @@ defmodule SupportDeckWeb.KnowledgeLive do
 
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Knowledge Base</h1>
-        <button :if={@mode == :index} phx-click="new" class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+        <button
+          :if={@mode == :index}
+          phx-click="new"
+          class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
           + New Document
         </button>
       </div>
@@ -130,27 +143,67 @@ defmodule SupportDeckWeb.KnowledgeLive do
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Content Type</label>
-                <select name="content_type" disabled={@mode == :edit} class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                  <option :for={ct <- @content_types} value={ct} selected={to_string(ct) == @form_data["content_type"]}>{ct}</option>
+                <select
+                  name="content_type"
+                  disabled={@mode == :edit}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option
+                    :for={ct <- @content_types}
+                    value={ct}
+                    selected={to_string(ct) == @form_data["content_type"]}
+                  >
+                    {ct}
+                  </option>
                 </select>
-                <input :if={@mode == :edit} type="hidden" name="content_type" value={@form_data["content_type"]} />
+                <input
+                  :if={@mode == :edit}
+                  type="hidden"
+                  name="content_type"
+                  value={@form_data["content_type"]}
+                />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Source URL</label>
-                <input type="text" name="source_url" value={@form_data["source_url"]} class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                <input
+                  type="text"
+                  name="source_url"
+                  value={@form_data["source_url"]}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
               </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
-              <textarea name="content" rows="6" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">{@form_data["content"]}</textarea>
+              <textarea
+                name="content"
+                rows="6"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              >{@form_data["content"]}</textarea>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Metadata (JSON)</label>
-              <textarea name="metadata" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono">{@form_data["metadata"]}</textarea>
+              <textarea
+                name="metadata"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+              >{@form_data["metadata"]}</textarea>
             </div>
             <div class="flex gap-3">
-              <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
-              <button type="button" phx-click="cancel" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+              <button
+                type="submit"
+                class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                phx-click="cancel"
+                class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
             </div>
           </form>
         </div>
@@ -165,7 +218,10 @@ defmodule SupportDeckWeb.KnowledgeLive do
         </form>
       </div>
 
-      <div :if={@docs == [] && @mode == :index} class="text-center py-12 bg-white rounded-lg border border-gray-200">
+      <div
+        :if={@docs == [] && @mode == :index}
+        class="text-center py-12 bg-white rounded-lg border border-gray-200"
+      >
         <p class="text-gray-500">No documents found.</p>
       </div>
 
@@ -174,15 +230,32 @@ defmodule SupportDeckWeb.KnowledgeLive do
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
-                <span class="px-2 py-0.5 text-xs rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">{doc.content_type}</span>
+                <span class="px-2 py-0.5 text-xs rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                  {doc.content_type}
+                </span>
                 <span :if={doc.source_url} class="text-xs text-gray-400">{doc.source_url}</span>
               </div>
               <p class="text-sm text-gray-700 line-clamp-3">{doc.content}</p>
-              <p class="text-xs text-gray-400 mt-2">{Calendar.strftime(doc.inserted_at, "%Y-%m-%d %H:%M")}</p>
+              <p class="text-xs text-gray-400 mt-2">
+                {Calendar.strftime(doc.inserted_at, "%Y-%m-%d %H:%M")}
+              </p>
             </div>
             <div class="flex gap-2 ml-4">
-              <button phx-click="edit" phx-value-id={doc.id} class="text-sm text-indigo-600 hover:text-indigo-700">Edit</button>
-              <button phx-click="delete" phx-value-id={doc.id} data-confirm="Delete this document?" class="text-sm text-red-600 hover:text-red-700">Delete</button>
+              <button
+                phx-click="edit"
+                phx-value-id={doc.id}
+                class="text-sm text-indigo-600 hover:text-indigo-700"
+              >
+                Edit
+              </button>
+              <button
+                phx-click="delete"
+                phx-value-id={doc.id}
+                data-confirm="Delete this document?"
+                class="text-sm text-red-600 hover:text-red-700"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

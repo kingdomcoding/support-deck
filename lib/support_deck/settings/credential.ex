@@ -22,58 +22,64 @@ defmodule SupportDeck.Settings.Credential do
     data_layer: AshPostgres.DataLayer
 
   postgres do
-    table "credentials"
-    repo SupportDeck.Repo
+    table("credentials")
+    repo(SupportDeck.Repo)
   end
 
   attributes do
-    uuid_primary_key :id
+    uuid_primary_key(:id)
 
     attribute :integration, :atom do
-      constraints one_of: [:front, :slack, :linear, :openai, :anthropic]
-      allow_nil? false
-      public? true
+      constraints(one_of: [:front, :slack, :linear, :openai, :anthropic])
+      allow_nil?(false)
+      public?(true)
     end
 
     attribute :key_name, :atom do
-      constraints one_of: [
-        :api_token, :api_key, :bot_token,
-        :webhook_secret, :signing_secret
-      ]
-      allow_nil? false
-      public? true
+      constraints(
+        one_of: [
+          :api_token,
+          :api_key,
+          :bot_token,
+          :webhook_secret,
+          :signing_secret
+        ]
+      )
+
+      allow_nil?(false)
+      public?(true)
     end
 
-    attribute :encrypted_value, :string, allow_nil?: false
+    attribute(:encrypted_value, :string, allow_nil?: false)
 
-    attribute :value_hint, :string, public?: true
+    attribute(:value_hint, :string, public?: true)
 
     attribute :last_test_status, :atom do
-      constraints one_of: [:untested, :ok, :error]
-      default :untested
-      public? true
+      constraints(one_of: [:untested, :ok, :error])
+      default(:untested)
+      public?(true)
     end
 
-    attribute :last_test_message, :string, public?: true
-    attribute :last_tested_at, :utc_datetime, public?: true
+    attribute(:last_test_message, :string, public?: true)
+    attribute(:last_tested_at, :utc_datetime, public?: true)
 
-    create_timestamp :inserted_at
-    update_timestamp :updated_at
+    create_timestamp(:inserted_at)
+    update_timestamp(:updated_at)
   end
 
   identities do
-    identity :unique_integration_key, [:integration, :key_name]
+    identity(:unique_integration_key, [:integration, :key_name])
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults([:read, :destroy])
 
     create :store do
-      accept [:integration, :key_name]
+      accept([:integration, :key_name])
 
-      argument :plaintext_value, :string, allow_nil?: false, sensitive?: true
+      argument(:plaintext_value, :string, allow_nil?: false, sensitive?: true)
 
-      change fn changeset, _context ->
+      change(fn changeset, _context ->
         plaintext = Ash.Changeset.get_argument(changeset, :plaintext_value)
         encrypted = SupportDeck.Settings.Vault.encrypt!(plaintext)
         hint = String.slice(plaintext, -4..-1//1)
@@ -82,32 +88,32 @@ defmodule SupportDeck.Settings.Credential do
         |> Ash.Changeset.force_change_attribute(:encrypted_value, encrypted)
         |> Ash.Changeset.force_change_attribute(:value_hint, "•••• #{hint}")
         |> Ash.Changeset.force_change_attribute(:last_test_status, :untested)
-      end
+      end)
 
-      upsert? true
-      upsert_identity :unique_integration_key
-      upsert_fields [:encrypted_value, :value_hint, :last_test_status, :updated_at]
+      upsert?(true)
+      upsert_identity(:unique_integration_key)
+      upsert_fields([:encrypted_value, :value_hint, :last_test_status, :updated_at])
     end
 
     update :record_test_result do
-      accept []
+      accept([])
 
-      argument :status, :atom, allow_nil?: false, constraints: [one_of: [:ok, :error]]
-      argument :message, :string
+      argument(:status, :atom, allow_nil?: false, constraints: [one_of: [:ok, :error]])
+      argument(:message, :string)
 
-      change set_attribute(:last_test_status, arg(:status))
-      change set_attribute(:last_test_message, arg(:message))
-      change set_attribute(:last_tested_at, &DateTime.utc_now/0)
+      change(set_attribute(:last_test_status, arg(:status)))
+      change(set_attribute(:last_test_message, arg(:message)))
+      change(set_attribute(:last_tested_at, &DateTime.utc_now/0))
     end
 
     read :for_integration do
-      argument :integration, :atom, allow_nil?: false
+      argument(:integration, :atom, allow_nil?: false)
 
-      filter expr(integration == ^arg(:integration))
+      filter(expr(integration == ^arg(:integration)))
     end
 
     read :all_credentials do
-      description "All stored credentials (encrypted values excluded from serialization)."
+      description("All stored credentials (encrypted values excluded from serialization).")
     end
   end
 end

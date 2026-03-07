@@ -8,10 +8,18 @@ defmodule SupportDeck.Workers.FrontWebhookWorker do
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"payload" => payload}}) do
     case payload["type"] do
-      "inbound"        -> handle_inbound(payload)
-      "outbound_reply" -> handle_reply(payload)
-      "assign"         -> handle_assignment(payload)
-      "tag"            -> handle_tag(payload)
+      "inbound" ->
+        handle_inbound(payload)
+
+      "outbound_reply" ->
+        handle_reply(payload)
+
+      "assign" ->
+        handle_assignment(payload)
+
+      "tag" ->
+        handle_tag(payload)
+
       _ ->
         Logger.info("front.webhook.ignored", type: payload["type"])
         :ok
@@ -80,7 +88,9 @@ defmodule SupportDeck.Workers.FrontWebhookWorker do
         {:ok, ticket} ->
           new_tier = String.to_existing_atom(tag_name)
           Tickets.apply_ai_results(ticket, %{subscription_tier: new_tier})
-        _ -> :ok
+
+        _ ->
+          :ok
       end
     end
 
@@ -89,6 +99,7 @@ defmodule SupportDeck.Workers.FrontWebhookWorker do
 
   defp infer_tier(tags) do
     names = Enum.map(tags, & &1["name"])
+
     cond do
       "enterprise" in names -> :enterprise
       "team" in names -> :team

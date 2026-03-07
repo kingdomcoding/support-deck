@@ -5,10 +5,11 @@ defmodule SupportDeckWeb.AIDashboardLive do
   def mount(_params, _session, socket) do
     since = DateTime.add(DateTime.utc_now(), -7 * 24 * 3600)
 
-    results = case SupportDeck.AI.list_recent_triage(since) do
-      {:ok, r} -> r
-      _ -> []
-    end
+    results =
+      case SupportDeck.AI.list_recent_triage(since) do
+        {:ok, r} -> r
+        _ -> []
+      end
 
     {:ok,
      socket
@@ -22,10 +23,11 @@ defmodule SupportDeckWeb.AIDashboardLive do
   def handle_event("refresh", _, socket) do
     since = DateTime.add(DateTime.utc_now(), -7 * 24 * 3600)
 
-    results = case SupportDeck.AI.list_recent_triage(since) do
-      {:ok, r} -> r
-      _ -> []
-    end
+    results =
+      case SupportDeck.AI.list_recent_triage(since) do
+        {:ok, r} -> r
+        _ -> []
+      end
 
     {:noreply,
      socket
@@ -61,10 +63,16 @@ defmodule SupportDeckWeb.AIDashboardLive do
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900">AI Dashboard</h1>
         <div class="flex gap-3">
-          <button phx-click="refresh" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button
+            phx-click="refresh"
+            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
             Refresh
           </button>
-          <a href={~p"/simulator"} class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+          <a
+            href={~p"/simulator"}
+            class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
             Trigger Triage
           </a>
         </div>
@@ -85,7 +93,10 @@ defmodule SupportDeckWeb.AIDashboardLive do
 
       <div :if={@results == []} class="text-center py-12 bg-white rounded-lg border border-gray-200">
         <p class="text-gray-500">No triage results yet.</p>
-        <a href={~p"/simulator"} class="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block">
+        <a
+          href={~p"/simulator"}
+          class="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block"
+        >
           Run a triage in the Simulator
         </a>
       </div>
@@ -95,16 +106,25 @@ defmodule SupportDeckWeb.AIDashboardLive do
           <thead class="bg-gray-50">
             <tr>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Severity</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Confidence</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Category
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Severity
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Confidence
+              </th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr :for={result <- @results} class="hover:bg-gray-50">
               <td class="px-4 py-3">
-                <a href={~p"/tickets/#{result.ticket_id}"} class="text-indigo-600 hover:text-indigo-700 text-sm font-mono">
+                <a
+                  href={~p"/tickets/#{result.ticket_id}"}
+                  class="text-indigo-600 hover:text-indigo-700 text-sm font-mono"
+                >
                   {String.slice(result.ticket_id, 0..7)}...
                 </a>
               </td>

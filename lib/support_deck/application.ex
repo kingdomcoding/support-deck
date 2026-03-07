@@ -12,9 +12,15 @@ defmodule SupportDeck.Application do
       {Phoenix.PubSub, name: SupportDeck.PubSub},
       {Oban, Application.fetch_env!(:support_deck, Oban)},
       SupportDeck.Settings.Resolver,
-      Supervisor.child_spec({SupportDeck.Integrations.CircuitBreaker, name: :front}, id: :cb_front),
-      Supervisor.child_spec({SupportDeck.Integrations.CircuitBreaker, name: :slack}, id: :cb_slack),
-      Supervisor.child_spec({SupportDeck.Integrations.CircuitBreaker, name: :linear}, id: :cb_linear),
+      Supervisor.child_spec({SupportDeck.Integrations.CircuitBreaker, name: :front},
+        id: :cb_front
+      ),
+      Supervisor.child_spec({SupportDeck.Integrations.CircuitBreaker, name: :slack},
+        id: :cb_slack
+      ),
+      Supervisor.child_spec({SupportDeck.Integrations.CircuitBreaker, name: :linear},
+        id: :cb_linear
+      ),
       SupportDeckWeb.Endpoint
     ]
 

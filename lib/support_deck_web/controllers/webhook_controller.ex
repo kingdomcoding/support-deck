@@ -20,9 +20,14 @@ defmodule SupportDeckWeb.WebhookController do
       enqueue(SupportDeck.Workers.FrontWebhookWorker, :front, event_id, payload)
       json(conn, %{status: "accepted"})
     else
-      {:error, :invalid_signature} -> conn |> put_status(401) |> json(%{error: "invalid_signature"})
-      {:error, :duplicate_event} -> json(conn, %{status: "already_processed"})
-      {:error, reason} -> conn |> put_status(400) |> json(%{error: inspect(reason)})
+      {:error, :invalid_signature} ->
+        conn |> put_status(401) |> json(%{error: "invalid_signature"})
+
+      {:error, :duplicate_event} ->
+        json(conn, %{status: "already_processed"})
+
+      {:error, reason} ->
+        conn |> put_status(400) |> json(%{error: inspect(reason)})
     end
   end
 
@@ -48,34 +53,40 @@ defmodule SupportDeckWeb.WebhookController do
         end
       end
     else
-      {:error, :invalid_signature} -> conn |> put_status(401) |> json(%{error: "invalid_signature"})
+      {:error, :invalid_signature} ->
+        conn |> put_status(401) |> json(%{error: "invalid_signature"})
     end
   end
 
   def linear(conn, _params) do
     with :ok <- WebhookSignature.verify_linear(conn),
          {:ok, payload} <- Jason.decode(conn.assigns[:raw_body]),
-         delivery_id = get_req_header(conn, "linear-delivery") |> List.first() || Ecto.UUID.generate(),
+         delivery_id =
+           get_req_header(conn, "linear-delivery") |> List.first() || Ecto.UUID.generate(),
          event_type = get_req_header(conn, "linear-event") |> List.first() || payload["type"],
          action = payload["action"] do
       case store_event(:linear, delivery_id, "#{event_type}.#{action}", payload) do
-        {:ok, _} -> enqueue(SupportDeck.Workers.LinearWebhookWorker, :linear, delivery_id, payload)
-        {:error, :duplicate_event} -> :ok
+        {:ok, _} ->
+          enqueue(SupportDeck.Workers.LinearWebhookWorker, :linear, delivery_id, payload)
+
+        {:error, :duplicate_event} ->
+          :ok
       end
 
       json(conn, %{status: "accepted"})
     else
-      {:error, :invalid_signature} -> conn |> put_status(401) |> json(%{error: "invalid_signature"})
+      {:error, :invalid_signature} ->
+        conn |> put_status(401) |> json(%{error: "invalid_signature"})
     end
   end
 
   defp store_event(source, external_id, event_type, payload) do
     case SupportDeck.IntegrationsDomain.store_event(%{
-      source: source,
-      external_id: external_id,
-      event_type: event_type || "unknown",
-      payload: payload
-    }) do
+           source: source,
+           external_id: external_id,
+           event_type: event_type || "unknown",
+           payload: payload
+         }) do
       {:ok, event} -> {:ok, event}
       {:error, %Ash.Error.Invalid{} = _} -> {:error, :duplicate_event}
       {:error, reason} -> {:error, reason}

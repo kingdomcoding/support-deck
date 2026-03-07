@@ -22,7 +22,11 @@ defmodule SupportDeckWeb.SettingsLive do
   end
 
   @impl true
-  def handle_event("save_credential", %{"integration" => integration, "key_name" => key_name, "value" => value}, socket) do
+  def handle_event(
+        "save_credential",
+        %{"integration" => integration, "key_name" => key_name, "value" => value},
+        socket
+      ) do
     if value == "" do
       {:noreply, put_flash(socket, :error, "Value cannot be empty")}
     else
@@ -49,6 +53,7 @@ defmodule SupportDeckWeb.SettingsLive do
     case SupportDeck.Settings.ConnectionTester.test(name) do
       {:ok, message} ->
         update_test_results(name, :ok, message)
+
         {:noreply,
          socket
          |> assign(:testing, nil)
@@ -57,6 +62,7 @@ defmodule SupportDeckWeb.SettingsLive do
 
       {:error, message} ->
         update_test_results(name, :error, message)
+
         {:noreply,
          socket
          |> assign(:testing, nil)
@@ -81,15 +87,17 @@ defmodule SupportDeckWeb.SettingsLive do
           SupportDeck.Settings.record_test_result(cred, %{status: status, message: message})
         end)
 
-      _ -> :ok
+      _ ->
+        :ok
     end
   end
 
   defp load_credentials(socket) do
-    credentials = case SupportDeck.Settings.list_all_credentials() do
-      {:ok, c} -> c
-      _ -> []
-    end
+    credentials =
+      case SupportDeck.Settings.list_all_credentials() do
+        {:ok, c} -> c
+        _ -> []
+      end
 
     assign(socket, :credentials, credentials)
   end
@@ -106,14 +114,20 @@ defmodule SupportDeckWeb.SettingsLive do
 
       <h1 class="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
 
-      <div :if={@test_result} class={"mb-6 p-4 rounded-lg border #{if elem(@test_result, 0) == :ok, do: "bg-green-50 border-green-200", else: "bg-red-50 border-red-200"}"}>
+      <div
+        :if={@test_result}
+        class={"mb-6 p-4 rounded-lg border #{if elem(@test_result, 0) == :ok, do: "bg-green-50 border-green-200", else: "bg-red-50 border-red-200"}"}
+      >
         <p class={"text-sm #{if elem(@test_result, 0) == :ok, do: "text-green-700", else: "text-red-700"}"}>
           {elem(@test_result, 1)}
         </p>
       </div>
 
       <div class="space-y-6">
-        <div :for={{integration, keys} <- @integrations} class="bg-white rounded-lg border border-gray-200 p-6">
+        <div
+          :for={{integration, keys} <- @integrations}
+          class="bg-white rounded-lg border border-gray-200 p-6"
+        >
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-gray-900 capitalize">{integration}</h2>
             <button
@@ -137,15 +151,28 @@ defmodule SupportDeckWeb.SettingsLive do
                     <span class={"px-1.5 py-0.5 text-[10px] rounded #{status_class(existing.last_test_status)}"}>
                       {existing.last_test_status}
                     </span>
-                    <button phx-click="delete_credential" phx-value-id={existing.id} data-confirm="Delete this credential?" class="text-[10px] text-red-500 hover:text-red-700">
+                    <button
+                      phx-click="delete_credential"
+                      phx-value-id={existing.id}
+                      data-confirm="Delete this credential?"
+                      class="text-[10px] text-red-500 hover:text-red-700"
+                    >
                       delete
                     </button>
                   </div>
                   <form phx-submit="save_credential" class="flex gap-2">
                     <input type="hidden" name="integration" value={integration} />
                     <input type="hidden" name="key_name" value={key_name} />
-                    <input type="password" name="value" placeholder={if existing, do: "Update value...", else: "Enter value..."} class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                    <button type="submit" class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    <input
+                      type="password"
+                      name="value"
+                      placeholder={if existing, do: "Update value...", else: "Enter value..."}
+                      class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                    <button
+                      type="submit"
+                      class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                    >
                       Save
                     </button>
                   </form>

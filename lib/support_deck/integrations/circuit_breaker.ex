@@ -65,7 +65,11 @@ defmodule SupportDeck.Integrations.CircuitBreaker do
       :ets.new(:circuit_breakers, [:named_table, :public, :set])
     end
 
-    :ets.insert(:circuit_breakers, {name, :closed, 0, nil, %{threshold: threshold, cooldown: cooldown}})
+    :ets.insert(
+      :circuit_breakers,
+      {name, :closed, 0, nil, %{threshold: threshold, cooldown: cooldown}}
+    )
+
     {:ok, %{name: name}}
   end
 
@@ -111,6 +115,6 @@ defmodule SupportDeck.Integrations.CircuitBreaker do
 
   defp cooldown_expired?(name) do
     [{_, _, _, last_at, opts}] = :ets.lookup(:circuit_breakers, name)
-    last_at == nil or (System.monotonic_time(:millisecond) - last_at) >= opts.cooldown
+    last_at == nil or System.monotonic_time(:millisecond) - last_at >= opts.cooldown
   end
 end

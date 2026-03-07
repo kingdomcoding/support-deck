@@ -55,23 +55,49 @@ defmodule SupportDeck.Workers.AITriageWorker do
     subject = ticket.subject || ""
     text = String.downcase(subject <> " " <> body)
 
-    product_area = cond do
-      String.contains?(text, "auth") or String.contains?(text, "login") -> "auth"
-      String.contains?(text, "database") or String.contains?(text, "postgres") -> "database"
-      String.contains?(text, "storage") or String.contains?(text, "bucket") -> "storage"
-      String.contains?(text, "function") or String.contains?(text, "edge function") -> "functions"
-      String.contains?(text, "realtime") or String.contains?(text, "websocket") -> "realtime"
-      String.contains?(text, "dashboard") -> "dashboard"
-      String.contains?(text, "billing") or String.contains?(text, "invoice") -> "billing"
-      true -> "general"
-    end
+    product_area =
+      cond do
+        String.contains?(text, "auth") or String.contains?(text, "login") ->
+          "auth"
 
-    severity = cond do
-      String.contains?(text, "down") or String.contains?(text, "outage") or String.contains?(text, "data loss") -> "critical"
-      String.contains?(text, "broken") or String.contains?(text, "error") or String.contains?(text, "fail") -> "high"
-      String.contains?(text, "issue") or String.contains?(text, "problem") -> "medium"
-      true -> "low"
-    end
+        String.contains?(text, "database") or String.contains?(text, "postgres") ->
+          "database"
+
+        String.contains?(text, "storage") or String.contains?(text, "bucket") ->
+          "storage"
+
+        String.contains?(text, "function") or String.contains?(text, "edge function") ->
+          "functions"
+
+        String.contains?(text, "realtime") or String.contains?(text, "websocket") ->
+          "realtime"
+
+        String.contains?(text, "dashboard") ->
+          "dashboard"
+
+        String.contains?(text, "billing") or String.contains?(text, "invoice") ->
+          "billing"
+
+        true ->
+          "general"
+      end
+
+    severity =
+      cond do
+        String.contains?(text, "down") or String.contains?(text, "outage") or
+            String.contains?(text, "data loss") ->
+          "critical"
+
+        String.contains?(text, "broken") or String.contains?(text, "error") or
+            String.contains?(text, "fail") ->
+          "high"
+
+        String.contains?(text, "issue") or String.contains?(text, "problem") ->
+          "medium"
+
+        true ->
+          "low"
+      end
 
     %{
       "product_area" => product_area,
@@ -97,6 +123,7 @@ defmodule SupportDeck.Workers.AITriageWorker do
   rescue
     _ -> nil
   end
+
   defp parse_area(_), do: nil
 
   defp parse_severity(%{"severity" => s}) when is_binary(s) do
@@ -104,5 +131,6 @@ defmodule SupportDeck.Workers.AITriageWorker do
   rescue
     _ -> nil
   end
+
   defp parse_severity(_), do: nil
 end

@@ -95,7 +95,8 @@ defmodule SupportDeck.Repo.Migrations.CreateResources do
             name: "ticket_activities_ticket_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
     end
 
     create table(:sla_policies, primary_key: false) do
@@ -207,7 +208,8 @@ defmodule SupportDeck.Repo.Migrations.CreateResources do
             name: "ai_triage_results_ticket_id_fkey",
             type: :uuid,
             prefix: "public"
-          ), null: false
+          ),
+          null: false
     end
   end
 

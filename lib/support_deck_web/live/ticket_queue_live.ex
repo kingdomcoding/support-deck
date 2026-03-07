@@ -26,7 +26,8 @@ defmodule SupportDeckWeb.TicketQueueLive do
   end
 
   def handle_event("filter_status", %{"status" => status}, socket) do
-    {:noreply, socket |> assign(:status_filter, String.to_existing_atom(status)) |> load_tickets()}
+    {:noreply,
+     socket |> assign(:status_filter, String.to_existing_atom(status)) |> load_tickets()}
   end
 
   @impl true
@@ -36,28 +37,34 @@ defmodule SupportDeckWeb.TicketQueueLive do
   def handle_info(_, socket), do: {:noreply, socket}
 
   defp load_tickets(socket) do
-    tickets = case socket.assigns[:status_filter] do
-      nil ->
-        case SupportDeck.Tickets.list_open_tickets() do
-          {:ok, t} -> t
-          _ -> []
-        end
-      status ->
-        case SupportDeck.Tickets.list_by_status(status) do
-          {:ok, t} -> t
-          _ -> []
-        end
-    end
+    tickets =
+      case socket.assigns[:status_filter] do
+        nil ->
+          case SupportDeck.Tickets.list_open_tickets() do
+            {:ok, t} -> t
+            _ -> []
+          end
 
-    filtered = case socket.assigns[:search] do
-      "" -> tickets
-      search ->
-        term = String.downcase(search)
-        Enum.filter(tickets, fn t ->
-          String.contains?(String.downcase(t.subject || ""), term) ||
-          String.contains?(String.downcase(t.customer_email || ""), term)
-        end)
-    end
+        status ->
+          case SupportDeck.Tickets.list_by_status(status) do
+            {:ok, t} -> t
+            _ -> []
+          end
+      end
+
+    filtered =
+      case socket.assigns[:search] do
+        "" ->
+          tickets
+
+        search ->
+          term = String.downcase(search)
+
+          Enum.filter(tickets, fn t ->
+            String.contains?(String.downcase(t.subject || ""), term) ||
+              String.contains?(String.downcase(t.customer_email || ""), term)
+          end)
+      end
 
     assign(socket, :tickets, filtered)
   end
@@ -66,18 +73,33 @@ defmodule SupportDeckWeb.TicketQueueLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["AshStateMachine", "PubSub real-time", "Ash read actions", "Named filters"]} />
+      <.tech_banner patterns={[
+        "AshStateMachine",
+        "PubSub real-time",
+        "Ash read actions",
+        "Named filters"
+      ]} />
 
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Tickets</h1>
-        <a href={~p"/simulator"} class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+        <a
+          href={~p"/simulator"}
+          class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
           + New Ticket
         </a>
       </div>
 
       <div class="flex gap-4 mb-4">
         <form phx-change="search" class="flex-1">
-          <input type="text" name="search" value={@search} placeholder="Search tickets..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" phx-debounce="300" />
+          <input
+            type="text"
+            name="search"
+            value={@search}
+            placeholder="Search tickets..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            phx-debounce="300"
+          />
         </form>
         <form phx-change="filter_status">
           <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
@@ -95,7 +117,10 @@ defmodule SupportDeckWeb.TicketQueueLive do
 
       <div :if={@tickets == []} class="text-center py-12 bg-white rounded-lg border border-gray-200">
         <p class="text-gray-500">No tickets found.</p>
-        <a href={~p"/simulator"} class="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block">
+        <a
+          href={~p"/simulator"}
+          class="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block"
+        >
           Create your first ticket in the Simulator →
         </a>
       </div>
@@ -106,15 +131,22 @@ defmodule SupportDeckWeb.TicketQueueLive do
             <tr>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Severity</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Severity
+              </th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assignee</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Assignee
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr :for={ticket <- @tickets} class="hover:bg-gray-50">
               <td class="px-4 py-3">
-                <a href={~p"/tickets/#{ticket.id}"} class="text-indigo-600 hover:text-indigo-700 font-medium text-sm">
+                <a
+                  href={~p"/tickets/#{ticket.id}"}
+                  class="text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+                >
                   {ticket.subject}
                 </a>
               </td>
@@ -144,7 +176,9 @@ defmodule SupportDeckWeb.TicketQueueLive do
       resolved: "bg-gray-100 text-gray-700",
       closed: "bg-gray-100 text-gray-500"
     }
-    assigns = assign(assigns, :color, Map.get(colors, assigns.status, "bg-gray-100 text-gray-500"))
+
+    assigns =
+      assign(assigns, :color, Map.get(colors, assigns.status, "bg-gray-100 text-gray-500"))
 
     ~H"""
     <span class={"px-2 py-1 text-xs rounded-full #{@color}"}>{@status}</span>
@@ -158,7 +192,9 @@ defmodule SupportDeckWeb.TicketQueueLive do
       medium: "bg-yellow-100 text-yellow-700",
       low: "bg-gray-100 text-gray-600"
     }
-    assigns = assign(assigns, :color, Map.get(colors, assigns.severity, "bg-gray-100 text-gray-500"))
+
+    assigns =
+      assign(assigns, :color, Map.get(colors, assigns.severity, "bg-gray-100 text-gray-500"))
 
     ~H"""
     <span class={"px-2 py-1 text-xs rounded-full #{@color}"}>{@severity}</span>

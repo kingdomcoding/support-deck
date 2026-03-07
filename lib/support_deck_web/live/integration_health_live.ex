@@ -35,10 +35,16 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Integration Health</h1>
         <div class="flex gap-3">
-          <button phx-click="refresh" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button
+            phx-click="refresh"
+            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
             Refresh
           </button>
-          <a href={~p"/settings"} class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+          <a
+            href={~p"/settings"}
+            class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
             Configure Credentials
           </a>
         </div>
@@ -72,12 +78,14 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
   end
 
   defp state_indicator(assigns) do
-    color = case assigns.state do
-      :closed -> "bg-green-500"
-      :open -> "bg-red-500"
-      :half_open -> "bg-yellow-500"
-      _ -> "bg-gray-400"
-    end
+    color =
+      case assigns.state do
+        :closed -> "bg-green-500"
+        :open -> "bg-red-500"
+        :half_open -> "bg-yellow-500"
+        _ -> "bg-gray-400"
+      end
+
     assigns = assign(assigns, :color, color)
 
     ~H"""

@@ -9,15 +9,17 @@ defmodule SupportDeckWeb.TicketDetailLive do
           Phoenix.PubSub.subscribe(SupportDeck.PubSub, "tickets:updates")
         end
 
-        activities = case SupportDeck.Tickets.list_activities_for_ticket(ticket.id) do
-          {:ok, a} -> a
-          _ -> []
-        end
+        activities =
+          case SupportDeck.Tickets.list_activities_for_ticket(ticket.id) do
+            {:ok, a} -> a
+            _ -> []
+          end
 
-        triage_results = case SupportDeck.AI.list_triage_for_ticket(ticket.id) do
-          {:ok, t} -> t
-          _ -> []
-        end
+        triage_results =
+          case SupportDeck.AI.list_triage_for_ticket(ticket.id) do
+            {:ok, t} -> t
+            _ -> []
+          end
 
         {:ok,
          socket
@@ -38,24 +40,29 @@ defmodule SupportDeckWeb.TicketDetailLive do
   @impl true
   def handle_event("transition", %{"action" => action}, socket) do
     ticket = socket.assigns.ticket
-    result = case action do
-      "begin_triage" -> SupportDeck.Tickets.begin_triage(ticket)
-      "assign" -> SupportDeck.Tickets.assign_ticket(ticket, "agent@support.dev")
-      "wait_on_customer" -> SupportDeck.Tickets.wait_on_customer(ticket)
-      "customer_replied" -> SupportDeck.Tickets.customer_replied(ticket)
-      "escalate" -> SupportDeck.Tickets.escalate_ticket(ticket)
-      "resolve" -> SupportDeck.Tickets.resolve_ticket(ticket)
-      "close" -> SupportDeck.Tickets.close_ticket(ticket)
-      _ -> {:error, "Unknown action"}
-    end
+
+    result =
+      case action do
+        "begin_triage" -> SupportDeck.Tickets.begin_triage(ticket)
+        "assign" -> SupportDeck.Tickets.assign_ticket(ticket, "agent@support.dev")
+        "wait_on_customer" -> SupportDeck.Tickets.wait_on_customer(ticket)
+        "customer_replied" -> SupportDeck.Tickets.customer_replied(ticket)
+        "escalate" -> SupportDeck.Tickets.escalate_ticket(ticket)
+        "resolve" -> SupportDeck.Tickets.resolve_ticket(ticket)
+        "close" -> SupportDeck.Tickets.close_ticket(ticket)
+        _ -> {:error, "Unknown action"}
+      end
 
     case result do
       {:ok, updated} ->
-        activities = case SupportDeck.Tickets.list_activities_for_ticket(updated.id) do
-          {:ok, a} -> a
-          _ -> socket.assigns.activities
-        end
+        activities =
+          case SupportDeck.Tickets.list_activities_for_ticket(updated.id) do
+            {:ok, a} -> a
+            _ -> socket.assigns.activities
+          end
+
         {:noreply, socket |> assign(:ticket, updated) |> assign(:activities, activities)}
+
       {:error, err} ->
         {:noreply, put_flash(socket, :error, "Transition failed: #{inspect(err)}")}
     end
@@ -82,7 +89,12 @@ defmodule SupportDeckWeb.TicketDetailLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["AshStateMachine transitions", "PubSub", "Oban AI triage", "Activity timeline"]} />
+      <.tech_banner patterns={[
+        "AshStateMachine transitions",
+        "PubSub",
+        "Oban AI triage",
+        "Activity timeline"
+      ]} />
 
       <div class="flex items-center gap-4 mb-6">
         <a href={~p"/tickets"} class="text-gray-400 hover:text-gray-600">← Back</a>
@@ -95,7 +107,11 @@ defmodule SupportDeckWeb.TicketDetailLive do
             <h3 class="font-medium text-gray-900 mb-2">Details</h3>
             <dl class="grid grid-cols-2 gap-2 text-sm">
               <dt class="text-gray-500">Status</dt>
-              <dd><span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">{@ticket.state}</span></dd>
+              <dd>
+                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                  {@ticket.state}
+                </span>
+              </dd>
               <dt class="text-gray-500">Severity</dt>
               <dd>{@ticket.severity}</dd>
               <dt class="text-gray-500">Source</dt>
@@ -124,7 +140,9 @@ defmodule SupportDeckWeb.TicketDetailLive do
                   <span class="font-medium">{activity.actor}</span> — {activity.action}
                   <span :if={activity.to_value} class="text-gray-500">→ {activity.to_value}</span>
                 </p>
-                <p class="text-xs text-gray-400">{Calendar.strftime(activity.inserted_at, "%Y-%m-%d %H:%M")}</p>
+                <p class="text-xs text-gray-400">
+                  {Calendar.strftime(activity.inserted_at, "%Y-%m-%d %H:%M")}
+                </p>
               </div>
             </div>
           </div>
@@ -134,7 +152,12 @@ defmodule SupportDeckWeb.TicketDetailLive do
           <div class="bg-white rounded-lg border border-gray-200 p-4">
             <h3 class="font-medium text-gray-900 mb-3">Actions</h3>
             <div class="space-y-2">
-              <button :for={action <- available_transitions(@ticket.state)} phx-click="transition" phx-value-action={action} class="w-full px-3 py-2 text-sm text-left border border-gray-200 rounded-lg hover:bg-gray-50">
+              <button
+                :for={action <- available_transitions(@ticket.state)}
+                phx-click="transition"
+                phx-value-action={action}
+                class="w-full px-3 py-2 text-sm text-left border border-gray-200 rounded-lg hover:bg-gray-50"
+              >
                 {humanize_action(action)}
               </button>
             </div>
@@ -142,7 +165,10 @@ defmodule SupportDeckWeb.TicketDetailLive do
 
           <div class="bg-white rounded-lg border border-gray-200 p-4">
             <h3 class="font-medium text-gray-900 mb-3">AI Triage</h3>
-            <button phx-click="trigger_triage" class="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+            <button
+              phx-click="trigger_triage"
+              class="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
               Run AI Triage
             </button>
             <div :for={result <- @triage_results} class="mt-3 p-2 bg-gray-50 rounded text-sm">
@@ -160,7 +186,10 @@ defmodule SupportDeckWeb.TicketDetailLive do
   defp available_transitions(:new), do: ["begin_triage", "assign", "escalate", "close"]
   defp available_transitions(:triaging), do: ["assign", "escalate", "close"]
   defp available_transitions(:assigned), do: ["wait_on_customer", "escalate", "resolve", "close"]
-  defp available_transitions(:waiting_on_customer), do: ["customer_replied", "escalate", "resolve", "close"]
+
+  defp available_transitions(:waiting_on_customer),
+    do: ["customer_replied", "escalate", "resolve", "close"]
+
   defp available_transitions(:escalated), do: ["assign", "resolve", "close"]
   defp available_transitions(:resolved), do: ["close"]
   defp available_transitions(_), do: []

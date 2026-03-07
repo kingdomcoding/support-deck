@@ -8,9 +8,9 @@ defmodule SupportDeck.Workers.SlackWebhookWorker do
     event = payload["event"] || %{}
 
     case event["type"] do
-      "message"        -> handle_message(event)
+      "message" -> handle_message(event)
       "reaction_added" -> handle_reaction(event)
-      "app_mention"    -> handle_mention(event)
+      "app_mention" -> handle_mention(event)
       _ -> :ok
     end
   end
@@ -42,12 +42,18 @@ defmodule SupportDeck.Workers.SlackWebhookWorker do
     case Tickets.get_by_slack_thread(ch, ts) do
       {:ok, ticket} ->
         case emoji do
-          "white_check_mark" -> Tickets.resolve_ticket(ticket, %{resolution_note: "Resolved via Slack reaction"})
-          "eyes" -> Tickets.begin_triage(ticket)
-          _ -> :ok
+          "white_check_mark" ->
+            Tickets.resolve_ticket(ticket, %{resolution_note: "Resolved via Slack reaction"})
+
+          "eyes" ->
+            Tickets.begin_triage(ticket)
+
+          _ ->
+            :ok
         end
 
-      _ -> :ok
+      _ ->
+        :ok
     end
   end
 

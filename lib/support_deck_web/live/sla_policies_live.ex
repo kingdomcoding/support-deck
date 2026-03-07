@@ -40,7 +40,8 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
       first_response_minutes: String.to_integer(frm)
     }
 
-    attrs = if rm != "", do: Map.put(attrs, :resolution_minutes, String.to_integer(rm)), else: attrs
+    attrs =
+      if rm != "", do: Map.put(attrs, :resolution_minutes, String.to_integer(rm)), else: attrs
 
     case SupportDeck.SLADomain.update_policy(policy, attrs) do
       {:ok, _} ->
@@ -57,7 +58,11 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
   end
 
   def handle_event("create_default", %{"tier" => tier, "severity" => severity}, socket) do
-    defaults = SupportDeck.SLADomain.deadline_minutes(String.to_existing_atom(tier), String.to_existing_atom(severity))
+    defaults =
+      SupportDeck.SLADomain.deadline_minutes(
+        String.to_existing_atom(tier),
+        String.to_existing_atom(severity)
+      )
 
     attrs = %{
       name: "#{tier}/#{severity}",
@@ -78,10 +83,11 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
   end
 
   defp load_policies(socket) do
-    policies = case SupportDeck.SLADomain.list_all_policies() do
-      {:ok, p} -> p
-      _ -> []
-    end
+    policies =
+      case SupportDeck.SLADomain.list_all_policies() do
+        {:ok, p} -> p
+        _ -> []
+      end
 
     assign(socket, :policies, policies)
   end
@@ -105,8 +111,13 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tier / Severity</th>
-              <th :for={sev <- @severities} class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Tier / Severity
+              </th>
+              <th
+                :for={sev <- @severities}
+                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"
+              >
                 {sev}
               </th>
             </tr>
@@ -121,25 +132,59 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                     <form phx-submit="save" class="space-y-1">
                       <div>
                         <label class="text-[10px] text-gray-400">Response (min)</label>
-                        <input type="number" name="first_response_minutes" value={@form["first_response_minutes"]} class="w-20 px-1 py-0.5 text-xs border border-gray-300 rounded" />
+                        <input
+                          type="number"
+                          name="first_response_minutes"
+                          value={@form["first_response_minutes"]}
+                          class="w-20 px-1 py-0.5 text-xs border border-gray-300 rounded"
+                        />
                       </div>
                       <div>
                         <label class="text-[10px] text-gray-400">Resolution (min)</label>
-                        <input type="number" name="resolution_minutes" value={@form["resolution_minutes"]} class="w-20 px-1 py-0.5 text-xs border border-gray-300 rounded" />
+                        <input
+                          type="number"
+                          name="resolution_minutes"
+                          value={@form["resolution_minutes"]}
+                          class="w-20 px-1 py-0.5 text-xs border border-gray-300 rounded"
+                        />
                       </div>
                       <div class="flex gap-1">
-                        <button type="submit" class="px-2 py-0.5 text-[10px] bg-indigo-600 text-white rounded">Save</button>
-                        <button type="button" phx-click="cancel_edit" class="px-2 py-0.5 text-[10px] border border-gray-300 rounded">Cancel</button>
+                        <button
+                          type="submit"
+                          class="px-2 py-0.5 text-[10px] bg-indigo-600 text-white rounded"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          phx-click="cancel_edit"
+                          class="px-2 py-0.5 text-[10px] border border-gray-300 rounded"
+                        >
+                          Cancel
+                        </button>
                       </div>
                     </form>
                   <% else %>
-                    <button phx-click="edit" phx-value-id={policy.id} class="text-left hover:bg-gray-50 p-1 rounded w-full">
-                      <p class="text-sm font-medium text-gray-900">{policy.first_response_minutes}m</p>
-                      <p class="text-[10px] text-gray-400">resolve: {policy.resolution_minutes || "—"}m</p>
+                    <button
+                      phx-click="edit"
+                      phx-value-id={policy.id}
+                      class="text-left hover:bg-gray-50 p-1 rounded w-full"
+                    >
+                      <p class="text-sm font-medium text-gray-900">
+                        {policy.first_response_minutes}m
+                      </p>
+                      <p class="text-[10px] text-gray-400">
+                        resolve: {policy.resolution_minutes || "—"}m
+                      </p>
                     </button>
                   <% end %>
                 <% else %>
-                  <button phx-click="create_default" phx-value-tier={tier} phx-value-severity={sev} class="px-2 py-1 text-[10px] text-gray-400 border border-dashed border-gray-300 rounded hover:border-indigo-300 hover:text-indigo-600">
+                  <button
+                    phx-click="create_default"
+                    phx-value-tier={tier}
+                    phx-value-severity={sev}
+                    class="px-2 py-1 text-[10px] text-gray-400 border border-dashed border-gray-300 rounded hover:border-indigo-300 hover:text-indigo-600"
+                  >
                     + Add
                   </button>
                 <% end %>

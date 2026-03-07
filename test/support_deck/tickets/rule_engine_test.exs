@@ -10,11 +10,17 @@ defmodule SupportDeck.Tickets.RuleEngineTest do
     })
 
     ticket = create_ticket!(%{severity: :critical})
-    assert SupportDeck.Tickets.RuleEngine.matches?(ticket, %{"all" => [%{"field" => "severity", "op" => "eq", "value" => "critical"}]})
+
+    assert SupportDeck.Tickets.RuleEngine.matches?(ticket, %{
+             "all" => [%{"field" => "severity", "op" => "eq", "value" => "critical"}]
+           })
   end
 
   test "skips non-matching conditions" do
     ticket = create_ticket!(%{severity: :low})
-    refute SupportDeck.Tickets.RuleEngine.matches?(ticket, %{"all" => [%{"field" => "severity", "op" => "eq", "value" => "critical"}]})
+
+    refute SupportDeck.Tickets.RuleEngine.matches?(ticket, %{
+             "all" => [%{"field" => "severity", "op" => "eq", "value" => "critical"}]
+           })
   end
 end
