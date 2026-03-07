@@ -16,7 +16,9 @@ defmodule SupportDeckWeb.Layouts do
               <.icon name="hero-lifebuoy" class="size-4.5 text-white" />
             </div>
             <div>
-              <span class="font-semibold text-base-content text-[15px] leading-tight block">SupportDeck</span>
+              <span class="font-semibold text-base-content text-[15px] leading-tight block">
+                SupportDeck
+              </span>
               <span class="text-[10px] text-base-content/50 leading-tight">Supabase Demo</span>
             </div>
           </a>
@@ -24,24 +26,80 @@ defmodule SupportDeckWeb.Layouts do
 
         <div class="flex-1 overflow-y-auto py-3 px-2 space-y-5">
           <div>
-            <p class="px-2 mb-1 text-[10px] font-semibold text-base-content/40 uppercase tracking-widest">Operate</p>
-            <.nav_item path={~p"/"} current={assigns[:current_path]} icon="hero-squares-2x2" label="Dashboard" />
-            <.nav_item path={~p"/tickets"} current={assigns[:current_path]} icon="hero-inbox-stack" label="Tickets" badge={assigns[:ticket_count]} />
-            <.nav_item path={~p"/sla"} current={assigns[:current_path]} icon="hero-clock" label="SLA Monitor" badge={assigns[:breach_count]} badge_variant="error" />
+            <p class="px-2 mb-1 text-[10px] font-semibold text-base-content/40 uppercase tracking-widest">
+              Operate
+            </p>
+            <.nav_item
+              path={~p"/"}
+              current={assigns[:current_path]}
+              icon="hero-squares-2x2"
+              label="Dashboard"
+            />
+            <.nav_item
+              path={~p"/tickets"}
+              current={assigns[:current_path]}
+              icon="hero-inbox-stack"
+              label="Tickets"
+              badge={assigns[:ticket_count]}
+            />
+            <.nav_item
+              path={~p"/sla"}
+              current={assigns[:current_path]}
+              icon="hero-clock"
+              label="SLA Monitor"
+              badge={assigns[:breach_count]}
+              badge_variant="error"
+            />
           </div>
 
           <div>
-            <p class="px-2 mb-1 text-[10px] font-semibold text-base-content/40 uppercase tracking-widest">Intelligence</p>
-            <.nav_item path={~p"/ai"} current={assigns[:current_path]} icon="hero-sparkles" label="AI Triage" />
-            <.nav_item path={~p"/rules"} current={assigns[:current_path]} icon="hero-bolt" label="Automation" badge={assigns[:rule_count]} badge_variant="neutral" />
-            <.nav_item path={~p"/knowledge"} current={assigns[:current_path]} icon="hero-book-open" label="Knowledge" />
+            <p class="px-2 mb-1 text-[10px] font-semibold text-base-content/40 uppercase tracking-widest">
+              Intelligence
+            </p>
+            <.nav_item
+              path={~p"/ai"}
+              current={assigns[:current_path]}
+              icon="hero-sparkles"
+              label="AI Triage"
+            />
+            <.nav_item
+              path={~p"/rules"}
+              current={assigns[:current_path]}
+              icon="hero-bolt"
+              label="Automation"
+              badge={assigns[:rule_count]}
+              badge_variant="neutral"
+            />
+            <.nav_item
+              path={~p"/knowledge"}
+              current={assigns[:current_path]}
+              icon="hero-book-open"
+              label="Knowledge"
+            />
           </div>
 
           <div>
-            <p class="px-2 mb-1 text-[10px] font-semibold text-base-content/40 uppercase tracking-widest">Platform</p>
-            <.nav_item path={~p"/integrations"} current={assigns[:current_path]} icon="hero-puzzle-piece" label="Integrations" />
-            <.nav_item path={~p"/settings"} current={assigns[:current_path]} icon="hero-cog-6-tooth" label="Settings" />
-            <.nav_item path={~p"/simulator"} current={assigns[:current_path]} icon="hero-beaker" label="Simulator" />
+            <p class="px-2 mb-1 text-[10px] font-semibold text-base-content/40 uppercase tracking-widest">
+              Platform
+            </p>
+            <.nav_item
+              path={~p"/integrations"}
+              current={assigns[:current_path]}
+              icon="hero-puzzle-piece"
+              label="Integrations"
+            />
+            <.nav_item
+              path={~p"/settings"}
+              current={assigns[:current_path]}
+              icon="hero-cog-6-tooth"
+              label="Settings"
+            />
+            <.nav_item
+              path={~p"/simulator"}
+              current={assigns[:current_path]}
+              icon="hero-beaker"
+              label="Simulator"
+            />
           </div>
         </div>
 

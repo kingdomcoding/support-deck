@@ -211,7 +211,10 @@ defmodule SupportDeckWeb.TicketQueueLive do
         :if={@show_create}
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       >
-        <div class="bg-base-100 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6" phx-click-away="close_create">
+        <div
+          class="bg-base-100 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6"
+          phx-click-away="close_create"
+        >
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-base-content">New Ticket</h2>
             <button phx-click="close_create" class="text-base-content/40 hover:text-base-content">

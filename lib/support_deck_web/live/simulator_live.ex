@@ -55,7 +55,8 @@ defmodule SupportDeckWeb.SimulatorLive do
          |> assign(:result, {:ok, "Ticket created: #{ticket.subject} (#{ticket.id})"})}
 
       {:error, err} ->
-        {:noreply, assign(socket, :result, {:error, "Create failed: #{ErrorHelpers.format_error(err)}"})}
+        {:noreply,
+         assign(socket, :result, {:error, "Create failed: #{ErrorHelpers.format_error(err)}"})}
     end
   end
 
@@ -73,16 +74,18 @@ defmodule SupportDeckWeb.SimulatorLive do
         case Req.post(url, json: decoded) do
           {:ok, %{status: status}} ->
             {:noreply,
-             assign(socket, :result, {:ok, "Webhook sent to /webhooks/#{source} — HTTP #{status}"})}
+             assign(
+               socket,
+               :result,
+               {:ok, "Webhook sent to /webhooks/#{source} — HTTP #{status}"}
+             )}
 
           {:error, err} ->
-            {:noreply,
-             assign(socket, :result, {:error, "Webhook failed: #{inspect(err)}"})}
+            {:noreply, assign(socket, :result, {:error, "Webhook failed: #{inspect(err)}"})}
         end
 
       {:error, %Jason.DecodeError{} = err} ->
-        {:noreply,
-         assign(socket, :result, {:error, "Invalid JSON: #{Exception.message(err)}"})}
+        {:noreply, assign(socket, :result, {:error, "Invalid JSON: #{Exception.message(err)}"})}
     end
   end
 
@@ -101,7 +104,8 @@ defmodule SupportDeckWeb.SimulatorLive do
          )}
 
       {:error, err} ->
-        {:noreply, assign(socket, :result, {:error, "Queue failed: #{ErrorHelpers.format_error(err)}"})}
+        {:noreply,
+         assign(socket, :result, {:error, "Queue failed: #{ErrorHelpers.format_error(err)}"})}
     end
   end
 
@@ -116,7 +120,8 @@ defmodule SupportDeckWeb.SimulatorLive do
          )}
 
       {:error, err} ->
-        {:noreply, assign(socket, :result, {:error, "SLA check failed: #{ErrorHelpers.format_error(err)}"})}
+        {:noreply,
+         assign(socket, :result, {:error, "SLA check failed: #{ErrorHelpers.format_error(err)}"})}
     end
   end
 

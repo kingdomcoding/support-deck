@@ -76,8 +76,11 @@ defmodule SupportDeckWeb.SettingsLive do
     credential = Enum.find(socket.assigns.credentials, &(&1.id == id))
 
     case SupportDeck.Settings.delete_credential(credential) do
-      :ok -> {:noreply, socket |> put_flash(:info, "Credential deleted") |> load_credentials()}
-      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+      :ok ->
+        {:noreply, socket |> put_flash(:info, "Credential deleted") |> load_credentials()}
+
+      {:error, err} ->
+        {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
@@ -159,7 +162,10 @@ defmodule SupportDeckWeb.SettingsLive do
                   <label class="block text-sm font-medium text-base-content/80 mb-1">{label}</label>
                   <div :if={existing} class="flex items-center gap-2 mb-1">
                     <span class="text-xs text-base-content/40">{existing.value_hint}</span>
-                    <span class={["px-1.5 py-0.5 text-[10px] rounded", status_class(existing.last_test_status)]}>
+                    <span class={[
+                      "px-1.5 py-0.5 text-[10px] rounded",
+                      status_class(existing.last_test_status)
+                    ]}>
                       {existing.last_test_status}
                     </span>
                     <button

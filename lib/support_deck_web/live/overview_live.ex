@@ -94,10 +94,34 @@ defmodule SupportDeckWeb.OverviewLive do
       </.page_header>
 
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <.metric_card label="Open Tickets" value={@stats.open_tickets} icon="hero-inbox-stack" href={~p"/tickets"} variant="info" />
-        <.metric_card label="SLA Breaches" value={@stats.sla_breaches} icon="hero-exclamation-triangle" href={~p"/sla"} variant="error" />
-        <.metric_card label="Active Rules" value={@stats.active_rules} icon="hero-bolt" href={~p"/rules"} variant="success" />
-        <.metric_card label="AI Triages (24h)" value={@stats.ai_triages_24h} icon="hero-sparkles" href={~p"/ai"} variant="accent" />
+        <.metric_card
+          label="Open Tickets"
+          value={@stats.open_tickets}
+          icon="hero-inbox-stack"
+          href={~p"/tickets"}
+          variant="info"
+        />
+        <.metric_card
+          label="SLA Breaches"
+          value={@stats.sla_breaches}
+          icon="hero-exclamation-triangle"
+          href={~p"/sla"}
+          variant="error"
+        />
+        <.metric_card
+          label="Active Rules"
+          value={@stats.active_rules}
+          icon="hero-bolt"
+          href={~p"/rules"}
+          variant="success"
+        />
+        <.metric_card
+          label="AI Triages (24h)"
+          value={@stats.ai_triages_24h}
+          icon="hero-sparkles"
+          href={~p"/ai"}
+          variant="accent"
+        />
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -108,7 +132,9 @@ defmodule SupportDeckWeb.OverviewLive do
           </div>
           <div :if={@recent_tickets == []} class="p-8 text-center text-base-content/50 text-sm">
             No tickets yet.
-            <a href={~p"/simulator"} class="text-primary hover:underline">Create one in the Simulator</a>
+            <a href={~p"/simulator"} class="text-primary hover:underline">
+              Create one in the Simulator
+            </a>
           </div>
           <table :if={@recent_tickets != []} class="w-full text-sm">
             <tbody>
@@ -187,7 +213,11 @@ defmodule SupportDeckWeb.OverviewLive do
     }
 
     assigns =
-      assign(assigns, :variant_class, Map.get(variant_classes, assigns.variant, "text-base-content"))
+      assign(
+        assigns,
+        :variant_class,
+        Map.get(variant_classes, assigns.variant, "text-base-content")
+      )
 
     ~H"""
     <a

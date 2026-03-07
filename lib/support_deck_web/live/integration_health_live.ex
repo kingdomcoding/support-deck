@@ -84,7 +84,9 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
             </div>
             <div class="flex justify-between">
               <dt class="text-base-content/60">Last Failure</dt>
-              <dd class="font-medium text-base-content/60">{format_last_failure(status.last_failure_at)}</dd>
+              <dd class="font-medium text-base-content/60">
+                {format_last_failure(status.last_failure_at)}
+              </dd>
             </div>
           </dl>
         </div>

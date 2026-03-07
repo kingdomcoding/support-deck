@@ -525,7 +525,11 @@ defmodule SupportDeckWeb.CoreComponents do
     }
 
     assigns =
-      assign(assigns, :class, Map.get(classes, assigns.state, "bg-base-content/10 text-base-content/60"))
+      assign(
+        assigns,
+        :class,
+        Map.get(classes, assigns.state, "bg-base-content/10 text-base-content/60")
+      )
 
     ~H"""
     <span class={["inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full", @class]}>
@@ -545,7 +549,11 @@ defmodule SupportDeckWeb.CoreComponents do
     }
 
     assigns =
-      assign(assigns, :class, Map.get(classes, assigns.severity, "bg-base-content/10 text-base-content/60"))
+      assign(
+        assigns,
+        :class,
+        Map.get(classes, assigns.severity, "bg-base-content/10 text-base-content/60")
+      )
 
     ~H"""
     <span class={["inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full", @class]}>

@@ -95,7 +95,8 @@ defmodule SupportDeckWeb.KnowledgeLive do
              |> load_docs()}
 
           {:error, err} ->
-            {:noreply, put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
+            {:noreply,
+             put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
         end
     end
   end
@@ -104,8 +105,11 @@ defmodule SupportDeckWeb.KnowledgeLive do
     doc = Enum.find(socket.assigns.docs, &(&1.id == id))
 
     case SupportDeck.AI.delete_knowledge_doc(doc) do
-      :ok -> {:noreply, socket |> put_flash(:info, "Document deleted") |> load_docs()}
-      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+      :ok ->
+        {:noreply, socket |> put_flash(:info, "Document deleted") |> load_docs()}
+
+      {:error, err} ->
+        {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 

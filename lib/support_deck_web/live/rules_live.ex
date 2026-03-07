@@ -83,8 +83,11 @@ defmodule SupportDeckWeb.RulesLive do
     rule = Enum.find(socket.assigns.rules, &(&1.id == id))
 
     case SupportDeck.Tickets.update_rule(rule, %{enabled: !rule.enabled}) do
-      {:ok, _} -> {:noreply, load_rules(socket)}
-      {:error, err} -> {:noreply, put_flash(socket, :error, "Toggle failed: #{ErrorHelpers.format_error(err)}")}
+      {:ok, _} ->
+        {:noreply, load_rules(socket)}
+
+      {:error, err} ->
+        {:noreply, put_flash(socket, :error, "Toggle failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
@@ -92,13 +95,18 @@ defmodule SupportDeckWeb.RulesLive do
     rule = Enum.find(socket.assigns.rules, &(&1.id == id))
 
     case SupportDeck.Tickets.delete_rule(rule) do
-      :ok -> {:noreply, socket |> put_flash(:info, "Rule deleted") |> load_rules()}
-      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+      :ok ->
+        {:noreply, socket |> put_flash(:info, "Rule deleted") |> load_rules()}
+
+      {:error, err} ->
+        {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
   def handle_event("add_condition", _, socket) do
-    conditions = socket.assigns.conditions ++ [%{"field" => "severity", "op" => "eq", "value" => ""}]
+    conditions =
+      socket.assigns.conditions ++ [%{"field" => "severity", "op" => "eq", "value" => ""}]
+
     {:noreply, assign(socket, :conditions, conditions)}
   end
 
@@ -260,7 +268,11 @@ defmodule SupportDeckWeb.RulesLive do
                     name={"conditions[#{i}][op]"}
                     class="px-2 py-1.5 border border-base-300 rounded text-xs bg-base-100 w-20"
                   >
-                    <option :for={op <- ["eq", "neq", "in"]} value={op} selected={cond_item["op"] == op}>
+                    <option
+                      :for={op <- ["eq", "neq", "in"]}
+                      value={op}
+                      selected={cond_item["op"] == op}
+                    >
                       {op}
                     </option>
                   </select>

@@ -65,7 +65,8 @@ defmodule SupportDeckWeb.TicketDetailLive do
         {:noreply, socket |> assign(:ticket, updated) |> assign(:activities, activities)}
 
       {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Transition failed: #{ErrorHelpers.format_error(err)}")}
+        {:noreply,
+         put_flash(socket, :error, "Transition failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
@@ -107,7 +108,9 @@ defmodule SupportDeckWeb.TicketDetailLive do
             <.severity_pill severity={@ticket.severity} />
           </div>
           <p class="text-sm text-base-content/50">
-            {@ticket.customer_email || "No email"} · {@ticket.source} · {@ticket.subscription_tier} tier · {relative_time(@ticket.inserted_at)}
+            {@ticket.customer_email || "No email"} · {@ticket.source} · {@ticket.subscription_tier} tier · {relative_time(
+              @ticket.inserted_at
+            )}
           </p>
         </div>
       </div>
