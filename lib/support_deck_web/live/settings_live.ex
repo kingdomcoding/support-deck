@@ -141,7 +141,7 @@ defmodule SupportDeckWeb.SettingsLive do
         </p>
       </div>
 
-      <div class="space-y-6">
+      <div data-tour="credential-vault" class="space-y-6">
         <div
           :for={{integration, keys} <- @integrations}
           class="bg-base-100 rounded-lg border border-base-300 p-6"

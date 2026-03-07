@@ -76,7 +76,7 @@ defmodule SupportDeckWeb.SLADashboardLive do
         </:actions>
       </.page_header>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div data-tour="sla-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div class="bg-base-100 rounded-lg border border-base-300 p-4">
           <p class="text-sm text-base-content/60">Breaching Tickets</p>
           <p class="text-2xl font-bold text-error">{length(@breaching_tickets)}</p>

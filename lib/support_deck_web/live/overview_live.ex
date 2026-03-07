@@ -100,7 +100,7 @@ defmodule SupportDeckWeb.OverviewLive do
         </:actions>
       </.page_header>
 
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div data-tour="stats-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <.metric_card
           label="Open Tickets"
           value={@stats.open_tickets}
@@ -169,7 +169,7 @@ defmodule SupportDeckWeb.OverviewLive do
         </div>
 
         <div class="space-y-4">
-          <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+          <div data-tour="system-health" class="bg-base-100 rounded-lg border border-base-300 p-4">
             <h2 class="text-sm font-semibold text-base-content mb-3">System Health</h2>
             <div class="space-y-2">
               <.health_row :for={{name, status} <- @health} name={name} state={status.state} />

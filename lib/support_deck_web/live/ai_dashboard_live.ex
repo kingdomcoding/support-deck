@@ -107,24 +107,20 @@ defmodule SupportDeckWeb.AIDashboardLive do
 
       <h2 class="text-xl font-semibold text-base-content mb-4">Recent Triage Results</h2>
 
-      <div
-        :if={@results == []}
-        class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
-      >
-        <p class="text-base-content/60">No triage results yet.</p>
-        <.link
-          navigate={~p"/simulator"}
-          class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
+      <div data-tour="triage-results" class="bg-base-100 rounded-lg border border-base-300 overflow-hidden">
+        <div
+          :if={@results == []}
+          class="text-center py-12"
         >
-          Run a triage in the Simulator
-        </.link>
-      </div>
-
-      <div
-        :if={@results != []}
-        class="bg-base-100 rounded-lg border border-base-300 overflow-hidden"
-      >
-        <table class="min-w-full divide-y divide-base-300">
+          <p class="text-base-content/60">No triage results yet.</p>
+          <.link
+            navigate={~p"/simulator"}
+            class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
+          >
+            Run a triage in the Simulator
+          </.link>
+        </div>
+        <table :if={@results != []} class="min-w-full divide-y divide-base-300">
           <thead class="bg-base-200">
             <tr>
               <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">

@@ -175,6 +175,7 @@ defmodule SupportDeckWeb.TicketQueueLive do
       >
         <:actions>
           <button
+            data-tour="create-ticket-btn"
             phx-click="new_ticket"
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
@@ -211,24 +212,20 @@ defmodule SupportDeckWeb.TicketQueueLive do
         </form>
       </div>
 
-      <div
-        :if={@tickets == []}
-        class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
-      >
-        <p class="text-base-content/60">No tickets found.</p>
-        <button
-          phx-click="new_ticket"
-          class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
+      <div data-tour="ticket-table" class="bg-base-100 rounded-lg border border-base-300 overflow-hidden">
+        <div
+          :if={@tickets == []}
+          class="text-center py-12"
         >
-          Create your first ticket
-        </button>
-      </div>
-
-      <div
-        :if={@tickets != []}
-        class="bg-base-100 rounded-lg border border-base-300 overflow-hidden"
-      >
-        <table class="w-full text-sm">
+          <p class="text-base-content/60">No tickets found.</p>
+          <button
+            phx-click="new_ticket"
+            class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
+          >
+            Create your first ticket
+          </button>
+        </div>
+        <table :if={@tickets != []} class="w-full text-sm">
           <thead>
             <tr class="border-b border-base-300 text-base-content/50 text-xs uppercase">
               <.sort_header field={:subject} label="Subject" sort_by={@sort_by} sort_dir={@sort_dir} />

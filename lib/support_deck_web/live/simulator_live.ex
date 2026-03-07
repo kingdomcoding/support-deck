@@ -173,7 +173,7 @@ defmodule SupportDeckWeb.SimulatorLive do
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-base-100 rounded-lg border border-base-300 p-6">
+        <div data-tour="sim-create" class="bg-base-100 rounded-lg border border-base-300 p-6">
           <h2 class="text-lg font-semibold text-base-content mb-4">Create Ticket</h2>
           <form phx-submit="create_ticket" class="space-y-3">
             <div>
@@ -269,7 +269,7 @@ defmodule SupportDeckWeb.SimulatorLive do
         </div>
 
         <div class="space-y-6">
-          <div class="bg-base-100 rounded-lg border border-base-300 p-6">
+          <div data-tour="sim-webhook" class="bg-base-100 rounded-lg border border-base-300 p-6">
             <h2 class="text-lg font-semibold text-base-content mb-4">Webhook Simulation</h2>
             <form phx-submit="send_webhook" class="space-y-3">
               <div>
@@ -337,7 +337,7 @@ defmodule SupportDeckWeb.SimulatorLive do
             </button>
           </div>
 
-          <div class="bg-base-100 rounded-lg border border-base-300 p-6">
+          <div data-tour="sim-breakers" class="bg-base-100 rounded-lg border border-base-300 p-6">
             <h2 class="text-lg font-semibold text-base-content mb-4">Circuit Breakers</h2>
             <div class="space-y-2">
               <div

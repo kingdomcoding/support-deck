@@ -417,24 +417,20 @@ defmodule SupportDeckWeb.RulesLive do
         </div>
       <% end %>
 
-      <div
-        :if={@rules == [] && @mode == :index}
-        class="text-center py-12 bg-base-100 rounded-lg border border-base-300"
-      >
-        <p class="text-base-content/60">No rules configured yet.</p>
-        <.link
-          patch={~p"/rules/new"}
-          class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
+      <div :if={@mode == :index} data-tour="rules-table" class="bg-base-100 rounded-lg border border-base-300 overflow-hidden">
+        <div
+          :if={@rules == []}
+          class="text-center py-12"
         >
-          Create your first rule
-        </.link>
-      </div>
-
-      <div
-        :if={@rules != [] && @mode == :index}
-        class="bg-base-100 rounded-lg border border-base-300 overflow-hidden"
-      >
-        <table class="min-w-full divide-y divide-base-300">
+          <p class="text-base-content/60">No rules configured yet.</p>
+          <.link
+            patch={~p"/rules/new"}
+            class="text-primary hover:text-primary/80 text-sm mt-2 inline-block"
+          >
+            Create your first rule
+          </.link>
+        </div>
+        <table :if={@rules != []} class="min-w-full divide-y divide-base-300">
           <thead class="bg-base-200">
             <tr>
               <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">

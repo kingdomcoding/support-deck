@@ -68,7 +68,7 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
         </:actions>
       </.page_header>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div data-tour="breaker-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           :for={{name, status} <- @statuses}
           class="bg-base-100 rounded-lg border border-base-300 p-6"
