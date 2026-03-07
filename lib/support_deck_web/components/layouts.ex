@@ -5,7 +5,6 @@ defmodule SupportDeckWeb.Layouts do
 
   attr :flash, :map, required: true
   attr :current_scope, :map, default: nil
-  slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
@@ -52,7 +51,7 @@ defmodule SupportDeckWeb.Layouts do
 
       <main class="flex-1 overflow-y-auto">
         <.flash_group flash={@flash} />
-        {render_slot(@inner_block)}
+        {@inner_content}
       </main>
     </div>
     """

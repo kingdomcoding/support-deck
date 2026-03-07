@@ -3,6 +3,15 @@ defmodule SupportDeckWeb.WebhookController do
 
   alias SupportDeckWeb.Plugs.WebhookSignature
 
+  def receive(conn, %{"source" => source} = params) do
+    case source do
+      "front" -> front(conn, params)
+      "slack" -> slack(conn, params)
+      "linear" -> linear(conn, params)
+      _ -> conn |> put_status(404) |> json(%{error: "unknown_source"})
+    end
+  end
+
   def front(conn, _params) do
     with :ok <- WebhookSignature.verify_front(conn),
          {:ok, payload} <- Jason.decode(conn.assigns[:raw_body]),
