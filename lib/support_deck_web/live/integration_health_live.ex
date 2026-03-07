@@ -5,6 +5,8 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket), do: schedule_refresh()
+
     {:ok,
      socket
      |> assign(:page_title, "Integrations")
@@ -16,6 +18,16 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
   def handle_event("refresh", _, socket) do
     {:noreply, load_statuses(socket)}
   end
+
+  @impl true
+  def handle_info(:refresh, socket) do
+    schedule_refresh()
+    {:noreply, load_statuses(socket)}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
+
+  defp schedule_refresh, do: Process.send_after(self(), :refresh, 5_000)
 
   defp load_statuses(socket) do
     statuses =
