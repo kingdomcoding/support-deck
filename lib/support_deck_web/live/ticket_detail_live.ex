@@ -86,31 +86,6 @@ defmodule SupportDeckWeb.TicketDetailLive do
 
   def handle_info(_, socket), do: {:noreply, socket}
 
-  defp relative_time(datetime) do
-    diff = DateTime.diff(DateTime.utc_now(), datetime, :second)
-
-    cond do
-      diff < 60 -> "just now"
-      diff < 3600 -> "#{div(diff, 60)}m ago"
-      diff < 86400 -> "#{div(diff, 3600)}h ago"
-      diff < 604_800 -> "#{div(diff, 86400)}d ago"
-      true -> Calendar.strftime(datetime, "%b %d")
-    end
-  end
-
-  defp format_deadline(nil), do: "No deadline"
-
-  defp format_deadline(deadline) do
-    diff = DateTime.diff(deadline, DateTime.utc_now(), :minute)
-
-    cond do
-      diff < 0 -> "Breached #{abs(diff)}m ago"
-      diff < 60 -> "#{diff}m remaining"
-      diff < 1440 -> "#{div(diff, 60)}h remaining"
-      true -> Calendar.strftime(deadline, "%b %d at %H:%M")
-    end
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
