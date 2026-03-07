@@ -90,17 +90,14 @@ defmodule SupportDeckWeb.TicketDetailLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto px-6 py-6">
-      <.tech_banner patterns={[
-        "AshStateMachine transitions",
-        "PubSub",
-        "Oban AI triage",
-        "Activity timeline"
-      ]} />
-
-      <div class="flex items-center gap-4 mb-6">
-        <a href={~p"/tickets"} class="text-base-content/40 hover:text-base-content/60">&larr; Back</a>
-        <h1 class="text-2xl font-bold text-base-content">{@ticket.subject}</h1>
+      <div class="flex items-center gap-3 mb-2">
+        <a href={~p"/tickets"} class="text-base-content/40 hover:text-base-content/60 text-sm">&larr; Back</a>
       </div>
+      <.page_header
+        title={@ticket.subject}
+        description={"#{@ticket.source} ticket — #{@ticket.severity} severity — #{@ticket.subscription_tier} tier"}
+        patterns={["AshStateMachine transitions", "PubSub", "Oban AI triage", "Activity timeline"]}
+      />
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">

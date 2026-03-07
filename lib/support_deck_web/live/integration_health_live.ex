@@ -30,25 +30,26 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["Circuit breaker", "GenServer", "ETS state"]} />
-
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-base-content">Integration Health</h1>
-        <div class="flex gap-3">
+      <.page_header
+        title="Integrations"
+        description="Circuit breaker health for Front, Slack, and Linear. Auto-trips after consecutive failures."
+        patterns={["Circuit breaker", "GenServer", "ETS state"]}
+      >
+        <:actions>
           <button
             phx-click="refresh"
-            class="px-3 py-2 text-sm border border-base-300 rounded-lg hover:bg-base-200"
+            class="px-3 py-1.5 text-sm border border-base-300 rounded-lg hover:bg-base-200"
           >
             Refresh
           </button>
           <a
             href={~p"/settings"}
-            class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+            class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
           >
-            Configure Credentials
+            Credentials
           </a>
-        </div>
-      </div>
+        </:actions>
+      </.page_header>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div

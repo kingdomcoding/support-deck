@@ -111,9 +111,11 @@ defmodule SupportDeckWeb.SettingsLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["AES-256-GCM vault", "ETS cache", "GenServer resolver"]} />
-
-      <h1 class="text-2xl font-bold text-base-content mb-6">Settings</h1>
+      <.page_header
+        title="Settings"
+        description="Encrypted credential vault using AES-256-GCM. Credentials are stored encrypted and cached in ETS."
+        patterns={["AES-256-GCM vault", "ETS cache", "GenServer resolver"]}
+      />
 
       <div
         :if={@test_result}

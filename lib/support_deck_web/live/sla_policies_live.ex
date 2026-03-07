@@ -101,12 +101,14 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["Ash resource CRUD", "Upsert with identity"]} />
-
-      <div class="flex items-center gap-4 mb-6">
-        <a href={~p"/sla"} class="text-base-content/40 hover:text-base-content/60">&larr; Back</a>
-        <h1 class="text-2xl font-bold text-base-content">SLA Policies</h1>
+      <div class="flex items-center gap-3 mb-2">
+        <a href={~p"/sla"} class="text-base-content/40 hover:text-base-content/60 text-sm">&larr; Back</a>
       </div>
+      <.page_header
+        title="SLA Policies"
+        description="Response and resolution time targets by subscription tier and severity. Grid-based inline editing."
+        patterns={["Ash resource CRUD", "Upsert with identity"]}
+      />
 
       <div class="bg-base-100 rounded-lg border border-base-300 overflow-hidden">
         <table class="min-w-full divide-y divide-base-300">

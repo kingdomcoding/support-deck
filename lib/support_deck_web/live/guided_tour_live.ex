@@ -136,9 +136,11 @@ defmodule SupportDeckWeb.GuidedTourLive do
 
     ~H"""
     <div class="max-w-4xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["Interactive walkthrough", "PubSub events", "Domain API calls"]} />
-
-      <h1 class="text-2xl font-bold text-base-content mb-6">Guided Tour</h1>
+      <.page_header
+        title="Guided Tour"
+        description="Interactive walkthrough of SupportDeck's key features and Ash patterns."
+        patterns={["Interactive walkthrough", "Domain API calls"]}
+      />
 
       <div class="flex gap-2 mb-6">
         <button

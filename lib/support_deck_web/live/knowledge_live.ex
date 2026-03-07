@@ -129,18 +129,21 @@ defmodule SupportDeckWeb.KnowledgeLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["Ash resources", "Knowledge base"]} />
-
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-base-content">Knowledge Base</h1>
-        <button
-          :if={@mode == :index}
-          phx-click="new"
-          class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
-        >
-          + New Document
-        </button>
-      </div>
+      <.page_header
+        title="Knowledge Base"
+        description="Support documentation, resolved ticket patterns, and FAQs for AI context."
+        patterns={["Ash resources", "Content types"]}
+      >
+        <:actions>
+          <button
+            :if={@mode == :index}
+            phx-click="new"
+            class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+          >
+            + New Document
+          </button>
+        </:actions>
+      </.page_header>
 
       <%= if @mode in [:new, :edit] do %>
         <div class="bg-base-100 rounded-lg border border-base-300 p-6 mb-6">

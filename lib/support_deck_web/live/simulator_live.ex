@@ -139,9 +139,11 @@ defmodule SupportDeckWeb.SimulatorLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["Dev tooling", "Webhook pipeline", "Oban workers", "Circuit breaker"]} />
-
-      <h1 class="text-2xl font-bold text-base-content mb-6">Simulator</h1>
+      <.page_header
+        title="Simulator"
+        description="Test the entire pipeline — create tickets, fire webhooks, run AI triage, and trip circuit breakers."
+        patterns={["Dev tooling", "Webhook pipeline", "Oban workers"]}
+      />
 
       <div
         :if={@result}

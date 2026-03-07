@@ -139,18 +139,21 @@ defmodule SupportDeckWeb.RulesLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
-      <.tech_banner patterns={["Ash CRUD actions", "Rule engine", "Condition matching"]} />
-
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-base-content">Rules Engine</h1>
-        <a
-          :if={@mode == :index}
-          href={~p"/rules/new"}
-          class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
-        >
-          + New Rule
-        </a>
-      </div>
+      <.page_header
+        title="Automation Rules"
+        description="Event-driven rules that match ticket conditions and dispatch actions via Oban workers."
+        patterns={["Rule engine", "Condition matching", "Ash CRUD"]}
+      >
+        <:actions>
+          <a
+            :if={@mode == :index}
+            href={~p"/rules/new"}
+            class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+          >
+            + New Rule
+          </a>
+        </:actions>
+      </.page_header>
 
       <%= if @mode in [:new, :edit] do %>
         <div class="bg-base-100 rounded-lg border border-base-300 p-6 mb-6">

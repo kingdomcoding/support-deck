@@ -73,22 +73,20 @@ defmodule SupportDeckWeb.TicketQueueLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
-      <.tech_banner patterns={[
-        "AshStateMachine",
-        "PubSub real-time",
-        "Ash read actions",
-        "Named filters"
-      ]} />
-
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-base-content">Tickets</h1>
-        <a
-          href={~p"/simulator"}
-          class="px-3 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
-        >
-          + New Ticket
-        </a>
-      </div>
+      <.page_header
+        title="Tickets"
+        description="Active support tickets with real-time state machine transitions and search."
+        patterns={["AshStateMachine", "PubSub", "Named read actions"]}
+      >
+        <:actions>
+          <a
+            href={~p"/simulator"}
+            class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+          >
+            + New Ticket
+          </a>
+        </:actions>
+      </.page_header>
 
       <div class="flex gap-4 mb-4">
         <form phx-change="search" class="flex-1">

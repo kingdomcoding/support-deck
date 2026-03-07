@@ -510,4 +510,33 @@ defmodule SupportDeckWeb.CoreComponents do
     </div>
     """
   end
+
+  attr :title, :string, required: true
+  attr :description, :string, required: true
+  attr :patterns, :list, default: []
+  slot :actions
+
+  def page_header(assigns) do
+    ~H"""
+    <div class="mb-6">
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <h1 class="text-xl font-semibold text-base-content">{@title}</h1>
+          <p class="mt-0.5 text-sm text-base-content/60">{@description}</p>
+        </div>
+        <div :if={@actions != []} class="flex items-center gap-2 flex-shrink-0">
+          {render_slot(@actions)}
+        </div>
+      </div>
+      <div :if={@patterns != []} class="mt-2 flex flex-wrap gap-1">
+        <span
+          :for={pattern <- @patterns}
+          class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-base-content/5 text-base-content/40"
+        >
+          {pattern}
+        </span>
+      </div>
+    </div>
+    """
+  end
 end

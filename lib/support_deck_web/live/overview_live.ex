@@ -59,24 +59,20 @@ defmodule SupportDeckWeb.OverviewLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
-      <.tech_banner
+      <.page_header
+        title="Dashboard"
+        description="Real-time overview of support operations, SLA compliance, and AI triage performance."
         patterns={["Phoenix LiveView", "PubSub real-time", "Ash Domain queries"]}
-        description="Landing page with live system metrics"
-      />
-
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-base-content">SupportDeck</h1>
-        <p class="mt-2 text-base-content/60">Internal support tooling platform built with Ash Framework</p>
-      </div>
-
-      <div class="mb-6">
-        <a
-          href={~p"/tour"}
-          class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-content rounded-lg hover:bg-primary/90"
-        >
-          <.icon name="hero-map" class="size-5" /> Take the Guided Tour
-        </a>
-      </div>
+      >
+        <:actions>
+          <a
+            href={~p"/tour"}
+            class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+          >
+            <.icon name="hero-play-circle" class="size-4" /> Guided Tour
+          </a>
+        </:actions>
+      </.page_header>
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <.stat_card label="Open Tickets" value={@stats.open_tickets} color="blue" />
