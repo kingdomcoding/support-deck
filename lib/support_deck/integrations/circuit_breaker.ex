@@ -20,8 +20,10 @@ defmodule SupportDeck.Integrations.CircuitBreaker do
 
   def start_link(opts) do
     name = Keyword.fetch!(opts, :name)
-    GenServer.start_link(__MODULE__, opts, name: name)
+    GenServer.start_link(__MODULE__, opts, name: process_name(name))
   end
+
+  defp process_name(name), do: :"#{__MODULE__}.#{name}"
 
   def call(breaker_name, fun) do
     case get_state(breaker_name) do

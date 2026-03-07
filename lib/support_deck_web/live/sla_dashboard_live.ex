@@ -90,7 +90,7 @@ defmodule SupportDeckWeb.SLADashboardLive do
               </td>
               <td class="px-4 py-3 text-sm text-gray-500">{ticket.severity}</td>
               <td class="px-4 py-3 text-sm text-gray-500">{ticket.subscription_tier}</td>
-              <td class="px-4 py-3 text-sm text-gray-500">{ticket.status}</td>
+              <td class="px-4 py-3 text-sm text-gray-500">{ticket.state}</td>
               <td class="px-4 py-3 text-sm text-red-600 font-medium">{time_since_breach(ticket)}</td>
             </tr>
           </tbody>

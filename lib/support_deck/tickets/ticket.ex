@@ -10,8 +10,8 @@ defmodule SupportDeck.Tickets.Ticket do
 
     custom_indexes do
       index [:source, :external_id], unique: true
-      index [:status], where: "status NOT IN ('resolved', 'closed')"
-      index [:sla_deadline], where: "status NOT IN ('resolved', 'closed') AND sla_deadline IS NOT NULL"
+      index [:state], where: "state NOT IN ('resolved', 'closed')"
+      index [:sla_deadline], where: "state NOT IN ('resolved', 'closed') AND sla_deadline IS NOT NULL"
       index [:assignee]
       index [:product_area]
     end
@@ -38,7 +38,7 @@ defmodule SupportDeck.Tickets.Ticket do
         action :check_and_escalate_sla
         scheduler_cron "* * * * *"
         where expr(
-          status not in [:resolved, :closed] and
+          state not in [:resolved, :closed] and
           not is_nil(sla_deadline) and
           sla_deadline <= now()
         )
@@ -51,7 +51,7 @@ defmodule SupportDeck.Tickets.Ticket do
       trigger :auto_close_resolved do
         action :close
         scheduler_cron "0 * * * *"
-        where expr(status == :resolved and updated_at <= ago(48, :hour))
+        where expr(state == :resolved and updated_at <= ago(48, :hour))
         queue :maintenance
         max_attempts 3
         scheduler_module_name SupportDeck.Tickets.Ticket.AshOban.AutoCloseScheduler
@@ -256,7 +256,7 @@ defmodule SupportDeck.Tickets.Ticket do
         case SupportDeck.Repo.query("SELECT pg_try_advisory_xact_lock($1)", [lock_key]) do
           {:ok, %{rows: [[true]]}} ->
             changeset
-            |> Ash.Changeset.force_change_attribute(:status, :escalated)
+            |> Ash.Changeset.force_change_attribute(:state, :escalated)
             |> Ash.Changeset.force_change_attribute(
               :escalation_level,
               (Ash.Changeset.get_data(changeset, :escalation_level) || 0) + 1
@@ -277,7 +277,7 @@ defmodule SupportDeck.Tickets.Ticket do
     read :open_tickets do
       description "All non-resolved/closed tickets, ordered by SLA urgency."
 
-      filter expr(status not in [:resolved, :closed])
+      filter expr(state not in [:resolved, :closed])
 
       prepare fn query, _ctx ->
         Ash.Query.sort(query, sla_deadline: :asc_nils_last, inserted_at: :desc)
@@ -287,7 +287,7 @@ defmodule SupportDeck.Tickets.Ticket do
     read :by_status do
       argument :status, :atom, allow_nil?: false
 
-      filter expr(status == ^arg(:status))
+      filter expr(state == ^arg(:status))
 
       prepare fn query, _ctx ->
         Ash.Query.sort(query, inserted_at: :desc)
@@ -327,7 +327,7 @@ defmodule SupportDeck.Tickets.Ticket do
     read :for_auto_close do
       description "Resolved tickets older than 48 hours."
 
-      filter expr(status == :resolved and updated_at <= ago(48, :hour))
+      filter expr(state == :resolved and updated_at <= ago(48, :hour))
     end
   end
 

@@ -95,7 +95,7 @@ defmodule SupportDeckWeb.TicketDetailLive do
             <h3 class="font-medium text-gray-900 mb-2">Details</h3>
             <dl class="grid grid-cols-2 gap-2 text-sm">
               <dt class="text-gray-500">Status</dt>
-              <dd><span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">{@ticket.status}</span></dd>
+              <dd><span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">{@ticket.state}</span></dd>
               <dt class="text-gray-500">Severity</dt>
               <dd>{@ticket.severity}</dd>
               <dt class="text-gray-500">Source</dt>
@@ -134,7 +134,7 @@ defmodule SupportDeckWeb.TicketDetailLive do
           <div class="bg-white rounded-lg border border-gray-200 p-4">
             <h3 class="font-medium text-gray-900 mb-3">Actions</h3>
             <div class="space-y-2">
-              <button :for={action <- available_transitions(@ticket.status)} phx-click="transition" phx-value-action={action} class="w-full px-3 py-2 text-sm text-left border border-gray-200 rounded-lg hover:bg-gray-50">
+              <button :for={action <- available_transitions(@ticket.state)} phx-click="transition" phx-value-action={action} class="w-full px-3 py-2 text-sm text-left border border-gray-200 rounded-lg hover:bg-gray-50">
                 {humanize_action(action)}
               </button>
             </div>

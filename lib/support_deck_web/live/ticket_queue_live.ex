@@ -119,7 +119,7 @@ defmodule SupportDeckWeb.TicketQueueLive do
                 </a>
               </td>
               <td class="px-4 py-3">
-                <.status_badge status={ticket.status} />
+                <.status_badge status={ticket.state} />
               </td>
               <td class="px-4 py-3">
                 <.severity_badge severity={ticket.severity} />
