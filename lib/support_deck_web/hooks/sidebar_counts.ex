@@ -19,12 +19,30 @@ defmodule SupportDeckWeb.Hooks.SidebarCounts do
         |> assign(:ticket_count, safe_count(:tickets))
         |> assign(:breach_count, safe_count(:breaching))
         |> assign(:rule_count, safe_count(:rules))
+        |> attach_hook(:sidebar_counts, :handle_info, &handle_sidebar_info/2)
 
       {:cont, socket}
     else
       {:cont, socket}
     end
   end
+
+  defp handle_sidebar_info({:ticket_created, _}, socket) do
+    {:cont, assign(socket, :ticket_count, safe_count(:tickets))}
+  end
+
+  defp handle_sidebar_info({:ticket_updated, _}, socket) do
+    {:cont,
+     socket
+     |> assign(:ticket_count, safe_count(:tickets))
+     |> assign(:breach_count, safe_count(:breaching))}
+  end
+
+  defp handle_sidebar_info({:rule_updated, _}, socket) do
+    {:cont, assign(socket, :rule_count, safe_count(:rules))}
+  end
+
+  defp handle_sidebar_info(_, socket), do: {:cont, socket}
 
   defp safe_count(:tickets) do
     case SupportDeck.Tickets.list_open_tickets() do
