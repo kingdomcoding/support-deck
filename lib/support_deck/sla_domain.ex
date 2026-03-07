@@ -5,6 +5,7 @@ defmodule SupportDeck.SLADomain do
     resource SupportDeck.SLA.Policy do
       define(:create_policy, action: :create)
       define(:update_policy, action: :update)
+      define(:delete_policy, action: :destroy)
 
       define(:get_policy,
         action: :for_tier_and_severity,

@@ -69,18 +69,16 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
   end
 
   def handle_event("create_default", %{"tier" => tier, "severity" => severity}, socket) do
-    defaults =
-      SupportDeck.SLADomain.deadline_minutes(
-        String.to_existing_atom(tier),
-        String.to_existing_atom(severity)
-      )
+    tier_atom = String.to_existing_atom(tier)
+    sev_atom = String.to_existing_atom(severity)
+    response_min = SupportDeck.SLADomain.deadline_minutes(tier_atom, sev_atom) || 60
 
     attrs = %{
       name: "#{tier}/#{severity}",
-      subscription_tier: String.to_existing_atom(tier),
-      severity: String.to_existing_atom(severity),
-      first_response_minutes: defaults.first_response,
-      resolution_minutes: defaults.resolution,
+      subscription_tier: tier_atom,
+      severity: sev_atom,
+      first_response_minutes: response_min,
+      resolution_minutes: response_min * 4,
       escalation_thresholds: %{"warning" => 80, "critical" => 100}
     }
 
@@ -90,6 +88,22 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
 
       {:error, err} ->
         {:noreply, put_flash(socket, :error, "Create failed: #{ErrorHelpers.format_error(err)}")}
+    end
+  end
+
+  def handle_event("delete_policy", %{"id" => id}, socket) do
+    case Enum.find(socket.assigns.policies, &(&1.id == id)) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "Policy not found")}
+
+      policy ->
+        case SupportDeck.SLADomain.delete_policy(policy) do
+          :ok ->
+            {:noreply, socket |> put_flash(:info, "Policy deleted") |> load_policies()}
+
+          {:error, err} ->
+            {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
+        end
     end
   end
 
@@ -151,6 +165,8 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                           type="number"
                           name="first_response_minutes"
                           value={@form["first_response_minutes"]}
+                          min="1"
+                          required
                           class="w-20 px-1 py-0.5 text-xs border border-base-300 rounded bg-base-100"
                         />
                       </div>
@@ -160,6 +176,7 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                           type="number"
                           name="resolution_minutes"
                           value={@form["resolution_minutes"]}
+                          min="1"
                           class="w-20 px-1 py-0.5 text-xs border border-base-300 rounded bg-base-100"
                         />
                       </div>
@@ -181,18 +198,28 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                       </div>
                     </form>
                   <% else %>
-                    <button
-                      phx-click="edit"
-                      phx-value-id={policy.id}
-                      class="text-left hover:bg-base-200 p-1 rounded w-full"
-                    >
-                      <p class="text-sm font-medium text-base-content">
-                        {policy.first_response_minutes}m
-                      </p>
-                      <p class="text-[10px] text-base-content/40">
-                        resolve: {policy.resolution_minutes || "—"}m
-                      </p>
-                    </button>
+                    <div class="group relative">
+                      <button
+                        phx-click="edit"
+                        phx-value-id={policy.id}
+                        class="text-left hover:bg-base-200 p-1 rounded w-full"
+                      >
+                        <p class="text-sm font-medium text-base-content">
+                          {policy.first_response_minutes}m
+                        </p>
+                        <p class="text-[10px] text-base-content/40">
+                          resolve: {policy.resolution_minutes || "—"}m
+                        </p>
+                      </button>
+                      <button
+                        phx-click="delete_policy"
+                        phx-value-id={policy.id}
+                        data-confirm="Delete this SLA policy?"
+                        class="absolute -top-1 -right-1 hidden group-hover:block text-[10px] text-error hover:text-error/80 bg-base-100 rounded-full px-1"
+                      >
+                        ×
+                      </button>
+                    </div>
                   <% end %>
                 <% else %>
                   <button
