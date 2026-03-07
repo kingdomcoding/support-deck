@@ -531,9 +531,11 @@ defmodule SupportDeckWeb.CoreComponents do
         Map.get(classes, assigns.state, "bg-base-content/10 text-base-content/60")
       )
 
+    assigns = assign(assigns, :label, humanize_atom(assigns.state))
+
     ~H"""
     <span class={["inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full", @class]}>
-      {@state}
+      {@label}
     </span>
     """
   end
@@ -549,18 +551,22 @@ defmodule SupportDeckWeb.CoreComponents do
     }
 
     assigns =
-      assign(
-        assigns,
-        :class,
-        Map.get(classes, assigns.severity, "bg-base-content/10 text-base-content/60")
-      )
+      assigns
+      |> assign(:class, Map.get(classes, assigns.severity, "bg-base-content/10 text-base-content/60"))
+      |> assign(:label, humanize_atom(assigns.severity))
 
     ~H"""
     <span class={["inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full", @class]}>
-      {@severity}
+      {@label}
     </span>
     """
   end
+
+  defp humanize_atom(atom) when is_atom(atom) do
+    atom |> to_string() |> String.replace("_", " ") |> String.capitalize()
+  end
+
+  defp humanize_atom(val), do: to_string(val)
 
   attr :name, :atom, required: true
   attr :state, :atom, required: true
