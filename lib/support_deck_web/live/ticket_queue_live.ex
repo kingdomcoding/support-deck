@@ -15,6 +15,8 @@ defmodule SupportDeckWeb.TicketQueueLive do
      |> assign(:current_path, ~p"/tickets")
      |> assign(:search, "")
      |> assign(:status_filter, nil)
+     |> assign(:sort_by, :inserted_at)
+     |> assign(:sort_dir, :desc)
      |> assign(:show_create, false)
      |> load_tickets()}
   end
@@ -31,6 +33,21 @@ defmodule SupportDeckWeb.TicketQueueLive do
   def handle_event("filter_status", %{"status" => status}, socket) do
     {:noreply,
      socket |> assign(:status_filter, String.to_existing_atom(status)) |> load_tickets()}
+  end
+
+  def handle_event("sort", %{"field" => field}, socket) do
+    field = String.to_existing_atom(field)
+
+    {sort_by, sort_dir} =
+      if socket.assigns.sort_by == field,
+        do: {field, toggle_dir(socket.assigns.sort_dir)},
+        else: {field, :asc}
+
+    {:noreply,
+     socket
+     |> assign(:sort_by, sort_by)
+     |> assign(:sort_dir, sort_dir)
+     |> load_tickets()}
   end
 
   def handle_event("new_ticket", _, socket) do
@@ -100,7 +117,51 @@ defmodule SupportDeckWeb.TicketQueueLive do
           end)
       end
 
-    assign(socket, :tickets, filtered)
+    sorted =
+      Enum.sort_by(filtered, &sort_key(&1, socket.assigns[:sort_by] || :inserted_at), socket.assigns[:sort_dir] || :desc)
+
+    assign(socket, :tickets, sorted)
+  end
+
+  defp sort_key(ticket, :subject), do: String.downcase(ticket.subject || "")
+  defp sort_key(ticket, :state), do: to_string(ticket.state)
+  defp sort_key(ticket, :severity), do: severity_order(ticket.severity)
+  defp sort_key(ticket, :source), do: to_string(ticket.source)
+  defp sort_key(ticket, :assignee), do: ticket.assignee || ""
+  defp sort_key(ticket, :inserted_at), do: ticket.inserted_at
+  defp sort_key(ticket, _), do: ticket.inserted_at
+
+  defp severity_order(:critical), do: 0
+  defp severity_order(:high), do: 1
+  defp severity_order(:medium), do: 2
+  defp severity_order(:low), do: 3
+  defp severity_order(_), do: 4
+
+  defp toggle_dir(:asc), do: :desc
+  defp toggle_dir(:desc), do: :asc
+
+  attr :field, :atom, required: true
+  attr :label, :string, required: true
+  attr :sort_by, :atom, required: true
+  attr :sort_dir, :atom, required: true
+
+  defp sort_header(assigns) do
+    ~H"""
+    <th
+      class="px-4 py-2.5 text-left font-medium cursor-pointer hover:text-base-content select-none"
+      phx-click="sort"
+      phx-value-field={@field}
+    >
+      <span class="inline-flex items-center gap-1">
+        {@label}
+        <.icon
+          :if={@sort_by == @field}
+          name={if @sort_dir == :asc, do: "hero-chevron-up", else: "hero-chevron-down"}
+          class="size-3 text-primary"
+        />
+      </span>
+    </th>
+    """
   end
 
   @impl true
@@ -138,14 +199,14 @@ defmodule SupportDeckWeb.TicketQueueLive do
             name="status"
             class="px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100 text-base-content"
           >
-            <option value="">All Open</option>
-            <option value="new">New</option>
-            <option value="triaging">Triaging</option>
-            <option value="assigned">Assigned</option>
-            <option value="waiting_on_customer">Waiting</option>
-            <option value="escalated">Escalated</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
+            <option value="" selected={@status_filter == nil}>All Open</option>
+            <option value="new" selected={@status_filter == :new}>New</option>
+            <option value="triaging" selected={@status_filter == :triaging}>Triaging</option>
+            <option value="assigned" selected={@status_filter == :assigned}>Assigned</option>
+            <option value="waiting_on_customer" selected={@status_filter == :waiting_on_customer}>Waiting</option>
+            <option value="escalated" selected={@status_filter == :escalated}>Escalated</option>
+            <option value="resolved" selected={@status_filter == :resolved}>Resolved</option>
+            <option value="closed" selected={@status_filter == :closed}>Closed</option>
           </select>
         </form>
       </div>
@@ -170,12 +231,12 @@ defmodule SupportDeckWeb.TicketQueueLive do
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-base-300 text-base-content/50 text-xs uppercase">
-              <th class="px-4 py-2.5 text-left font-medium">Subject</th>
-              <th class="px-4 py-2.5 text-left font-medium">State</th>
-              <th class="px-4 py-2.5 text-left font-medium">Severity</th>
-              <th class="px-4 py-2.5 text-left font-medium">Source</th>
-              <th class="px-4 py-2.5 text-left font-medium">Assignee</th>
-              <th class="px-4 py-2.5 text-left font-medium">Created</th>
+              <.sort_header field={:subject} label="Subject" sort_by={@sort_by} sort_dir={@sort_dir} />
+              <.sort_header field={:state} label="State" sort_by={@sort_by} sort_dir={@sort_dir} />
+              <.sort_header field={:severity} label="Severity" sort_by={@sort_by} sort_dir={@sort_dir} />
+              <.sort_header field={:source} label="Source" sort_by={@sort_by} sort_dir={@sort_dir} />
+              <.sort_header field={:assignee} label="Assignee" sort_by={@sort_by} sort_dir={@sort_dir} />
+              <.sort_header field={:inserted_at} label="Created" sort_by={@sort_by} sort_dir={@sort_dir} />
             </tr>
           </thead>
           <tbody>
