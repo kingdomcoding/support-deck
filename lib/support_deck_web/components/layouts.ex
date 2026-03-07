@@ -45,14 +45,20 @@ defmodule SupportDeckWeb.Layouts do
           </div>
         </div>
 
-        <div class="p-3 border-t border-base-300">
+        <div class="p-3 border-t border-base-300 flex items-center justify-between">
           <a
             href={~p"/tour"}
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-primary hover:bg-primary/10 transition"
+            class="flex items-center gap-1.5 text-sm text-primary hover:underline"
           >
-            <.icon name="hero-play-circle" class="size-5" />
-            <span class="font-medium">Guided Tour</span>
+            <.icon name="hero-play-circle" class="size-4" /> Tour
           </a>
+          <button
+            onclick="const html = document.documentElement; const current = html.getAttribute('data-theme'); const next = current === 'dark' ? 'light' : 'dark'; html.setAttribute('data-theme', next); localStorage.setItem('phx:theme', next);"
+            class="p-1.5 rounded-md text-base-content/50 hover:text-base-content hover:bg-base-200 transition"
+            title="Toggle theme"
+          >
+            <.icon name="hero-moon" class="size-4" />
+          </button>
         </div>
       </nav>
 
