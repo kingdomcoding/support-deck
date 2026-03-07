@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: support_deck_prod
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -33,7 +33,7 @@ services:
       POSTGRES_HOST: postgres
       CREDENTIAL_VAULT_KEY: ${CREDENTIAL_VAULT_KEY}
     command: >
-      sh -c "bin/migrate && bin/server"
+      sh -c "bin/migrate && bin/support_deck start"
 
 volumes:
   pgdata:
