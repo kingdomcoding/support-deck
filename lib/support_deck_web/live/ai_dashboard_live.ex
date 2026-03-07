@@ -80,6 +80,7 @@ defmodule SupportDeckWeb.AIDashboardLive do
         <:actions>
           <button
             phx-click="refresh"
+            phx-disable-with="Refreshing..."
             class="px-3 py-1.5 text-sm border border-base-300 rounded-lg hover:bg-base-200"
           >
             Refresh

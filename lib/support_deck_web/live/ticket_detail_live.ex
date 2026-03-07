@@ -190,6 +190,7 @@ defmodule SupportDeckWeb.TicketDetailLive do
                 phx-click="transition"
                 phx-value-action={action}
                 phx-disable-with="..."
+                data-confirm={if action in ["close", "resolve"], do: "#{humanize_action(action)} this ticket?"}
                 class="w-full px-3 py-1.5 text-sm text-left rounded-md border border-base-300 hover:bg-base-200 transition-colors"
               >
                 {humanize_action(action)}

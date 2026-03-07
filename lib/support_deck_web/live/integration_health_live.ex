@@ -19,6 +19,11 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
     {:noreply, load_statuses(socket)}
   end
 
+  def handle_event("reset_breaker", %{"name" => name}, socket) do
+    SupportDeck.Integrations.CircuitBreaker.reset(String.to_existing_atom(name))
+    {:noreply, socket |> put_flash(:info, "#{name} breaker reset") |> load_statuses()}
+  end
+
   @impl true
   def handle_info(:refresh, socket) do
     schedule_refresh()
@@ -89,6 +94,14 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
               </dd>
             </div>
           </dl>
+          <button
+            :if={status.state != :closed}
+            phx-click="reset_breaker"
+            phx-value-name={name}
+            class="mt-3 w-full px-3 py-1.5 text-sm bg-success/15 text-success rounded-lg hover:bg-success/25"
+          >
+            Reset Breaker
+          </button>
         </div>
       </div>
     </div>
@@ -117,5 +130,15 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
   defp format_state(other), do: to_string(other)
 
   defp format_last_failure(nil), do: "Never"
-  defp format_last_failure(_mono_time), do: "Recent"
+
+  defp format_last_failure(mono_time) do
+    elapsed_ms = System.monotonic_time(:millisecond) - mono_time
+    elapsed_s = div(elapsed_ms, 1000)
+
+    cond do
+      elapsed_s < 60 -> "#{elapsed_s}s ago"
+      elapsed_s < 3600 -> "#{div(elapsed_s, 60)}m ago"
+      true -> "#{div(elapsed_s, 3600)}h ago"
+    end
+  end
 end

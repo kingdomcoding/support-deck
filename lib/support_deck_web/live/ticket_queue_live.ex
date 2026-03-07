@@ -267,6 +267,8 @@ defmodule SupportDeckWeb.TicketQueueLive do
       <div
         :if={@show_create}
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        phx-window-keydown="close_create"
+        phx-key="Escape"
       >
         <div
           class="bg-base-100 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6"
