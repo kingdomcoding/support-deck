@@ -1,5 +1,6 @@
 defmodule SupportDeckWeb.SettingsLive do
   use SupportDeckWeb, :live_view
+  alias SupportDeckWeb.ErrorHelpers
 
   @integrations [
     {:front, [api_token: "API Token", webhook_secret: "Webhook Secret"]},
@@ -41,7 +42,7 @@ defmodule SupportDeckWeb.SettingsLive do
           {:noreply, socket |> put_flash(:info, "Credential saved") |> load_credentials()}
 
         {:error, err} ->
-          {:noreply, put_flash(socket, :error, "Save failed: #{inspect(err)}")}
+          {:noreply, put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
       end
     end
   end
@@ -76,7 +77,7 @@ defmodule SupportDeckWeb.SettingsLive do
 
     case SupportDeck.Settings.delete_credential(credential) do
       :ok -> {:noreply, socket |> put_flash(:info, "Credential deleted") |> load_credentials()}
-      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{inspect(err)}")}
+      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 

@@ -1,5 +1,6 @@
 defmodule SupportDeckWeb.GuidedTourLive do
   use SupportDeckWeb, :live_view
+  alias SupportDeckWeb.ErrorHelpers
 
   @steps [
     %{
@@ -91,7 +92,7 @@ defmodule SupportDeckWeb.GuidedTourLive do
            }
          ) do
       {:ok, ticket} -> "Ticket created: #{ticket.subject} (#{ticket.id})"
-      {:error, err} -> "Error: #{inspect(err)}"
+      {:error, err} -> "Error: #{ErrorHelpers.format_error(err)}"
     end
   end
 

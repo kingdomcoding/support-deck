@@ -1,5 +1,6 @@
 defmodule SupportDeckWeb.RulesLive do
   use SupportDeckWeb, :live_view
+  alias SupportDeckWeb.ErrorHelpers
 
   @triggers [:ticket_created, :ticket_updated, :sla_breach, :customer_reply, :escalation]
 
@@ -75,7 +76,7 @@ defmodule SupportDeckWeb.RulesLive do
 
     case SupportDeck.Tickets.update_rule(rule, %{enabled: !rule.enabled}) do
       {:ok, _} -> {:noreply, load_rules(socket)}
-      {:error, err} -> {:noreply, put_flash(socket, :error, "Toggle failed: #{inspect(err)}")}
+      {:error, err} -> {:noreply, put_flash(socket, :error, "Toggle failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
@@ -84,7 +85,7 @@ defmodule SupportDeckWeb.RulesLive do
 
     case SupportDeck.Tickets.delete_rule(rule) do
       :ok -> {:noreply, socket |> put_flash(:info, "Rule deleted") |> load_rules()}
-      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{inspect(err)}")}
+      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
@@ -116,7 +117,7 @@ defmodule SupportDeckWeb.RulesLive do
            |> push_patch(to: ~p"/rules")}
 
         {:error, err} ->
-          {:noreply, put_flash(socket, :error, "Save failed: #{inspect(err)}")}
+          {:noreply, put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
       end
     else
       {:error, %Jason.DecodeError{} = err} ->

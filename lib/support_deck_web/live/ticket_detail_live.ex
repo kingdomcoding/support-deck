@@ -1,5 +1,6 @@
 defmodule SupportDeckWeb.TicketDetailLive do
   use SupportDeckWeb, :live_view
+  alias SupportDeckWeb.ErrorHelpers
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -64,7 +65,7 @@ defmodule SupportDeckWeb.TicketDetailLive do
         {:noreply, socket |> assign(:ticket, updated) |> assign(:activities, activities)}
 
       {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Transition failed: #{inspect(err)}")}
+        {:noreply, put_flash(socket, :error, "Transition failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 

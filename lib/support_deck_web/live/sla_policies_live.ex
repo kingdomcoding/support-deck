@@ -1,5 +1,6 @@
 defmodule SupportDeckWeb.SLAPoliciesLive do
   use SupportDeckWeb, :live_view
+  alias SupportDeckWeb.ErrorHelpers
 
   @tiers [:free, :pro, :team, :enterprise]
   @severities [:low, :medium, :high, :critical]
@@ -53,7 +54,7 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
          |> load_policies()}
 
       {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Update failed: #{inspect(err)}")}
+        {:noreply, put_flash(socket, :error, "Update failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
@@ -78,7 +79,7 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
         {:noreply, socket |> put_flash(:info, "Policy created") |> load_policies()}
 
       {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Create failed: #{inspect(err)}")}
+        {:noreply, put_flash(socket, :error, "Create failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 

@@ -1,5 +1,6 @@
 defmodule SupportDeckWeb.SimulatorLive do
   use SupportDeckWeb, :live_view
+  alias SupportDeckWeb.ErrorHelpers
 
   @impl true
   def mount(_params, _session, socket) do
@@ -54,7 +55,7 @@ defmodule SupportDeckWeb.SimulatorLive do
          |> assign(:result, {:ok, "Ticket created: #{ticket.subject} (#{ticket.id})"})}
 
       {:error, err} ->
-        {:noreply, assign(socket, :result, {:error, "Create failed: #{inspect(err)}"})}
+        {:noreply, assign(socket, :result, {:error, "Create failed: #{ErrorHelpers.format_error(err)}"})}
     end
   end
 
@@ -73,7 +74,7 @@ defmodule SupportDeckWeb.SimulatorLive do
          )}
 
       {:error, err} ->
-        {:noreply, assign(socket, :result, {:error, "Invalid JSON: #{inspect(err)}"})}
+        {:noreply, assign(socket, :result, {:error, "Invalid JSON: #{ErrorHelpers.format_error(err)}"})}
     end
   end
 
@@ -92,7 +93,7 @@ defmodule SupportDeckWeb.SimulatorLive do
          )}
 
       {:error, err} ->
-        {:noreply, assign(socket, :result, {:error, "Queue failed: #{inspect(err)}"})}
+        {:noreply, assign(socket, :result, {:error, "Queue failed: #{ErrorHelpers.format_error(err)}"})}
     end
   end
 
@@ -107,7 +108,7 @@ defmodule SupportDeckWeb.SimulatorLive do
          )}
 
       {:error, err} ->
-        {:noreply, assign(socket, :result, {:error, "SLA check failed: #{inspect(err)}"})}
+        {:noreply, assign(socket, :result, {:error, "SLA check failed: #{ErrorHelpers.format_error(err)}"})}
     end
   end
 

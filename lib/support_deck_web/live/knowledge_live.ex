@@ -1,5 +1,6 @@
 defmodule SupportDeckWeb.KnowledgeLive do
   use SupportDeckWeb, :live_view
+  alias SupportDeckWeb.ErrorHelpers
 
   @content_types [:doc, :resolved_ticket, :faq]
 
@@ -94,7 +95,7 @@ defmodule SupportDeckWeb.KnowledgeLive do
              |> load_docs()}
 
           {:error, err} ->
-            {:noreply, put_flash(socket, :error, "Save failed: #{inspect(err)}")}
+            {:noreply, put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
         end
     end
   end
@@ -104,7 +105,7 @@ defmodule SupportDeckWeb.KnowledgeLive do
 
     case SupportDeck.AI.delete_knowledge_doc(doc) do
       :ok -> {:noreply, socket |> put_flash(:info, "Document deleted") |> load_docs()}
-      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{inspect(err)}")}
+      {:error, err} -> {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
