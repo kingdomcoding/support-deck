@@ -76,8 +76,8 @@ defmodule SupportDeckWeb.GuidedTourLive do
     end
   end
   defp execute_step(6) do
-    status = SupportDeck.Integrations.CircuitBreaker.status(:front)
-    "Front circuit breaker state: #{status}"
+    status = SupportDeck.Integrations.CircuitBreaker.get_status(:front)
+    "Front circuit breaker state: #{inspect(status.state)}"
   end
 
   @impl true

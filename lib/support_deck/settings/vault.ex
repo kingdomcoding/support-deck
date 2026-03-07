@@ -20,8 +20,8 @@ defmodule SupportDeck.Settings.Vault do
     key = derive_key()
     raw = Base.decode64!(encoded)
     <<iv::binary-12, rest::binary>> = raw
-    ciphertext_size = byte_size(rest) - 16
-    <<ciphertext::binary-size(ciphertext_size), tag::binary-16>> = rest
+    ct_size = byte_size(rest) - 16
+    <<ciphertext::binary-size(^ct_size), tag::binary-16>> = rest
     :crypto.crypto_one_time_aead(:aes_256_gcm, key, iv, ciphertext, @aad, tag, false)
   end
 

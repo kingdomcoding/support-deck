@@ -23,7 +23,7 @@ defmodule SupportDeck.Tickets.Ticket do
 
     transitions do
       transition :begin_triage,   from: :new,                                    to: :triaging
-      transition :assign,         from: [:new, :triaging, :escalated, :resolved, :closed], to: :assigned
+      transition :assign_to,      from: [:new, :triaging, :escalated, :resolved, :closed], to: :assigned
       transition :wait_on_customer, from: [:assigned, :escalated],               to: :waiting_on_customer
       transition :customer_replied, from: :waiting_on_customer,                  to: :assigned
       transition :escalate,       from: [:new, :triaging, :assigned, :waiting_on_customer], to: :escalated
@@ -44,6 +44,8 @@ defmodule SupportDeck.Tickets.Ticket do
         )
         queue :sla
         max_attempts 1
+        scheduler_module_name SupportDeck.Tickets.Ticket.AshOban.CheckSlaScheduler
+        worker_module_name SupportDeck.Tickets.Ticket.AshOban.CheckSlaWorker
       end
 
       trigger :auto_close_resolved do
@@ -52,6 +54,8 @@ defmodule SupportDeck.Tickets.Ticket do
         where expr(status == :resolved and updated_at <= ago(48, :hour))
         queue :maintenance
         max_attempts 3
+        scheduler_module_name SupportDeck.Tickets.Ticket.AshOban.AutoCloseScheduler
+        worker_module_name SupportDeck.Tickets.Ticket.AshOban.AutoCloseWorker
       end
     end
   end
@@ -165,6 +169,7 @@ defmodule SupportDeck.Tickets.Ticket do
     end
 
     update :begin_triage do
+      require_atomic? false
       accept []
       change transition_state(:triaging)
 
@@ -175,6 +180,7 @@ defmodule SupportDeck.Tickets.Ticket do
     end
 
     update :assign_to do
+      require_atomic? false
       accept [:assignee]
       change transition_state(:assigned)
 
@@ -185,16 +191,19 @@ defmodule SupportDeck.Tickets.Ticket do
     end
 
     update :wait_on_customer do
+      require_atomic? false
       accept []
       change transition_state(:waiting_on_customer)
     end
 
     update :customer_replied do
+      require_atomic? false
       accept []
       change transition_state(:assigned)
     end
 
     update :escalate do
+      require_atomic? false
       accept []
       change transition_state(:escalated)
       change increment(:escalation_level)
@@ -206,6 +215,7 @@ defmodule SupportDeck.Tickets.Ticket do
     end
 
     update :resolve do
+      require_atomic? false
       accept []
       change transition_state(:resolved)
 
@@ -216,23 +226,28 @@ defmodule SupportDeck.Tickets.Ticket do
     end
 
     update :close do
+      require_atomic? false
       accept []
       change transition_state(:closed)
     end
 
     update :apply_ai_results do
+      require_atomic? false
       accept [:ai_classification, :ai_draft_response, :ai_confidence, :product_area, :severity]
     end
 
     update :link_linear_issue do
+      require_atomic? false
       accept [:linear_issue_id]
     end
 
     update :set_sla_deadline do
+      require_atomic? false
       accept [:sla_deadline]
     end
 
     update :check_and_escalate_sla do
+      require_atomic? false
       accept []
 
       change fn changeset, _ctx ->
@@ -326,8 +341,8 @@ defmodule SupportDeck.Tickets.Ticket do
     Phoenix.PubSub.broadcast(SupportDeck.PubSub, "tickets:updates", message)
   end
 
-  defp log_and_broadcast(ticket, action, actor, value) do
-    SupportDeck.Tickets.log_activity!(ticket.id, action, actor, value)
+  defp log_and_broadcast(ticket, action, actor, _value) do
+    SupportDeck.Tickets.log_activity!(ticket.id, action, actor)
     broadcast({:ticket_updated, ticket})
   end
 end

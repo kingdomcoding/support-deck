@@ -46,6 +46,8 @@ defmodule SupportDeckWeb.Router do
       live "/integrations", IntegrationHealthLive, :index
       live "/ai", AIDashboardLive, :index
       live "/rules", RulesLive, :index
+      live "/rules/new", RulesLive, :new
+      live "/rules/:id/edit", RulesLive, :edit
       live "/knowledge", KnowledgeLive, :index
       live "/simulator", SimulatorLive, :index
       live "/settings", SettingsLive, :index
