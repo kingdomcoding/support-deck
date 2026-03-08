@@ -27,13 +27,14 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
      |> assign(:current_path, ~p"/integrations")
      |> assign(:integrations, @integrations)
      |> assign(:breaker_integrations, @breaker_integrations)
-     |> assign(:platform_tools, build_platform_tools())
      |> assign(:testing, nil)
      |> assign(:test_results, %{})
      |> assign(:webhook_results, %{})
      |> assign(:breaker_results, %{})
      |> load_credentials()
-     |> load_statuses()}
+     |> load_statuses()
+     |> load_rules_and_linear_ticket()
+     |> compute_breaker_display()}
   end
 
   # Credential events
@@ -118,7 +119,8 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
      socket
      |> update(:breaker_results, &Map.put(&1, integration,
        {:reset, System.monotonic_time(:millisecond)}))
-     |> load_statuses()}
+     |> load_statuses()
+     |> compute_breaker_display()}
   end
 
   def handle_event("trip_breaker", %{"name" => name}, socket) do
@@ -132,7 +134,8 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
      socket
      |> update(:breaker_results, &Map.put(&1, integration,
        {:tripped, System.monotonic_time(:millisecond)}))
-     |> load_statuses()}
+     |> load_statuses()
+     |> compute_breaker_display()}
   end
 
   # Webhook test
@@ -163,12 +166,17 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
     {:noreply,
      socket
      |> update(:webhook_results, &Map.put(&1, source_atom, result))
-     |> assign(:platform_tools, build_platform_tools())}
+     |> load_rules_and_linear_ticket()}
   end
 
   @impl true
   def handle_info(:refresh, socket) do
-    socket = socket |> expire_breaker_results() |> load_statuses()
+    socket =
+      socket
+      |> expire_breaker_results()
+      |> load_statuses()
+      |> compute_breaker_display()
+
     schedule_refresh(socket)
     {:noreply, socket}
   end
@@ -213,8 +221,11 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
   defp categorize_response(status, %{"error" => err}), do: {:error, "HTTP #{status} — #{err}"}
   defp categorize_response(status, _), do: {:error, "HTTP #{status}"}
 
-  defp build_platform_tools do
+  defp build_platform_tools(linked_ticket) do
     ts = System.os_time(:millisecond)
+
+    linear_issue_id =
+      if linked_ticket, do: linked_ticket.linear_issue_id, else: "no-linked-ticket"
 
     [
       {:front,
@@ -248,12 +259,17 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
          }
        }},
       {:linear,
-       "Simulates a Linear issue update. Only affects tickets already linked to a Linear issue.",
+       if(linked_ticket,
+         do:
+           "Simulates Linear marking issue #{linear_issue_id} as completed. Will resolve the linked ticket.",
+         else:
+           "No tickets are currently linked to a Linear issue. Create one first via a rule with linear_create action."
+       ),
        %{
          "type" => "Issue",
          "action" => "update",
          "data" => %{
-           "id" => "test-linear-#{ts}",
+           "id" => linear_issue_id,
            "identifier" => "SUP-999",
            "state" => %{"name" => "Done", "type" => "completed"}
          }
@@ -273,6 +289,25 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
     end
   end
 
+  defp load_rules_and_linear_ticket(socket) do
+    has_rules =
+      case SupportDeck.Tickets.list_all_rules() do
+        {:ok, rules} -> rules != []
+        _ -> false
+      end
+
+    linked_ticket =
+      case SupportDeck.Tickets.list_open_tickets() do
+        {:ok, tickets} -> Enum.find(tickets, & &1.linear_issue_id)
+        _ -> nil
+      end
+
+    socket
+    |> assign(:has_rules, has_rules)
+    |> assign(:linked_linear_ticket, linked_ticket)
+    |> assign(:platform_tools, build_platform_tools(linked_ticket))
+  end
+
   defp load_credentials(socket) do
     credentials =
       case SupportDeck.Settings.list_all_credentials() do
@@ -290,6 +325,71 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
       end)
 
     assign(socket, :statuses, statuses)
+  end
+
+  # Pre-computes all time-dependent breaker values as assigns so LiveView's
+  # diff engine sees actual value changes (countdown decrementing, state transitions).
+  # Without this, assign/3's value comparison sees identical ETS data and skips re-render.
+  defp compute_breaker_display(socket) do
+    statuses = socket.assigns.statuses
+    breaker_results = socket.assigns.breaker_results
+    credentials = socket.assigns.credentials
+
+    breaker_display =
+      Enum.map(@breaker_integrations, fn platform ->
+        breaker = find_breaker_status(statuses, platform)
+        display_state = display_breaker_state(breaker)
+        breaker_result = breaker_results[platform]
+        msg = breaker_result && breaker_result_message(platform, breaker_result, breaker)
+
+        cred_status = Resolver.integration_status(platform)
+
+        {platform,
+         %{
+           display_state: display_state,
+           state_label: friendly_state(display_state),
+           state_class: breaker_state_class(display_state),
+           failures: breaker && breaker.failures,
+           last_failure: breaker && format_last_failure(breaker.last_failure_at),
+           message: msg,
+           message_kind: breaker_result && elem(breaker_result, 0),
+           credentials_configured: cred_status == :configured
+         }}
+      end)
+      |> Map.new()
+
+    integration_statuses =
+      Enum.map(@integrations, fn {name, _, _} ->
+        {name, compute_integration_status(name, credentials, statuses)}
+      end)
+      |> Map.new()
+
+    socket
+    |> assign(:breaker_display, breaker_display)
+    |> assign(:integration_statuses, integration_statuses)
+  end
+
+  defp compute_integration_status(name, _credentials, statuses) do
+    config = Resolver.integration_status(name)
+    breaker = find_breaker_status(statuses, name)
+    display_state = display_breaker_state(breaker)
+
+    status =
+      case {config, display_state} do
+        {:not_configured, _} -> :not_configured
+        {:partial, _} -> :partial
+        {_, :open} -> :down
+        {_, :half_open} -> :degraded
+        {:configured, _} -> :healthy
+      end
+
+    %{
+      status: status,
+      label: status_badge_label(status),
+      class: status_badge_class(status),
+      failures: breaker && breaker.failures,
+      last_failure: breaker && format_last_failure(breaker.last_failure_at)
+    }
   end
 
   defp find_credential(credentials, integration, key_name) do
@@ -315,20 +415,6 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
   end
 
   defp display_breaker_state(%{state: state}), do: state
-
-  defp integration_status(name, credentials, statuses) do
-    config = Resolver.integration_status(name)
-    breaker = find_breaker_status(statuses, name)
-    display_state = display_breaker_state(breaker)
-
-    case {config, display_state} do
-      {:not_configured, _} -> :not_configured
-      {:partial, _} -> :partial
-      {_, :open} -> :down
-      {_, :half_open} -> :degraded
-      {:configured, _} -> :healthy
-    end
-  end
 
   defp status_badge_class(:healthy), do: "bg-success/15 text-success"
   defp status_badge_class(:down), do: "bg-error/15 text-error"
@@ -403,7 +489,7 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
     end
   end
 
-  defp breaker_protects(:front), do: "Outbound Front API calls (not currently used)"
+  defp breaker_protects(:front), do: "Outbound Front API calls (replies and tagging from rules)"
   defp breaker_protects(:slack), do: "Slack notifications from rules and SLA alerts"
   defp breaker_protects(:linear), do: "Linear issue creation from rules"
 
@@ -432,24 +518,23 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
           :for={{name, description, keys} <- @integrations}
           class="bg-base-100 rounded-lg border border-base-300 p-6"
         >
-          <% status = integration_status(name, @credentials, @statuses) %>
+          <% int_status = @integration_statuses[name] %>
           <% configured = Resolver.integration_status(name) == :configured %>
-          <% breaker = find_breaker_status(@statuses, name) %>
           <div class="flex items-center justify-between mb-1">
             <h3 class="text-lg font-semibold text-base-content capitalize">{name}</h3>
             <div class="flex items-center gap-3">
-              <div :if={breaker} class="flex items-center gap-3 text-xs text-base-content/50">
+              <div :if={int_status.failures} class="flex items-center gap-3 text-xs text-base-content/50">
                 <span>
                   <span class="text-base-content/40">Failures:</span>
-                  <span class="font-medium text-base-content/70">{breaker.failures}</span>
+                  <span class="font-medium text-base-content/70">{int_status.failures}</span>
                 </span>
                 <span>
                   <span class="text-base-content/40">Last:</span>
-                  <span class="font-medium text-base-content/70">{format_last_failure(breaker.last_failure_at)}</span>
+                  <span class="font-medium text-base-content/70">{int_status.last_failure}</span>
                 </span>
               </div>
-              <span class={["px-2.5 py-0.5 text-xs rounded-full font-medium", status_badge_class(status)]}>
-                {status_badge_label(status)}
+              <span class={["px-2.5 py-0.5 text-xs rounded-full font-medium", int_status.class]}>
+                {int_status.label}
               </span>
             </div>
           </div>
@@ -545,6 +630,10 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
         <p class="text-xs text-base-content/50 mb-4">
           Send test payloads to your webhook endpoints. These simulate external services sending data to SupportDeck — creating tickets, triggering rules, and syncing state.
         </p>
+        <div :if={!@has_rules} class="mb-4 p-3 rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm">
+          No automation rules found. Webhooks will create tickets but no rules will fire.
+          Seed your database or create rules to see the full pipeline in action.
+        </div>
         <div class="space-y-4">
           <div
             :for={{platform, description, default} <- @platform_tools}
@@ -583,9 +672,14 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
               <button
                 type="submit"
                 phx-disable-with="Sending..."
-                class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
+                disabled={platform == :linear && !@linked_linear_ticket}
+                class={[
+                  "px-3 py-1.5 text-sm rounded-lg",
+                  (platform == :linear && !@linked_linear_ticket) && "bg-base-300 text-base-content/40 cursor-not-allowed",
+                  !(platform == :linear && !@linked_linear_ticket) && "bg-primary text-primary-content hover:bg-primary/90"
+                ]}
               >
-                Send to {platform |> to_string() |> String.capitalize()}
+                Simulate {platform |> to_string() |> String.capitalize()} Webhook
               </button>
             </form>
           </div>
@@ -606,33 +700,31 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
           </p>
           <div class="divide-y divide-base-300">
             <div
-              :for={platform <- @breaker_integrations}
+              :for={{platform, bd} <- @breaker_display}
               class="py-3 first:pt-0 last:pb-0"
             >
-              <% breaker = find_breaker_status(@statuses, platform) %>
-              <% display_state = display_breaker_state(breaker) %>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3 min-w-0">
                   <h4 class="text-sm font-semibold text-base-content capitalize shrink-0">{platform}</h4>
-                  <span
-                    :if={breaker}
-                    class={["px-2 py-0.5 text-[10px] rounded-full font-medium shrink-0", breaker_state_class(display_state)]}
-                  >
-                    {friendly_state(display_state)}
+                  <span class={["px-2 py-0.5 text-[10px] rounded-full font-medium shrink-0", bd.state_class]}>
+                    {bd.state_label}
+                  </span>
+                  <span :if={!bd.credentials_configured} class="px-1.5 py-0.5 text-[10px] rounded-full bg-base-content/10 text-base-content/40">
+                    No credentials
                   </span>
                   <span class="text-xs text-base-content/40 truncate hidden sm:inline">
                     {breaker_protects(platform)}
                   </span>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <div :if={breaker} class="flex items-center gap-3 text-[10px] text-base-content/40 mr-2 hidden sm:flex">
+                  <div :if={bd.failures} class="flex items-center gap-3 text-[10px] text-base-content/40 mr-2 hidden sm:flex">
                     <span>
                       <span class="text-base-content/30">Fails:</span>
-                      <span class="font-medium text-base-content/60">{breaker.failures}</span>
+                      <span class="font-medium text-base-content/60">{bd.failures}</span>
                     </span>
                     <span>
                       <span class="text-base-content/30">Last:</span>
-                      <span class="font-medium text-base-content/60">{format_last_failure(breaker.last_failure_at)}</span>
+                      <span class="font-medium text-base-content/60">{bd.last_failure}</span>
                     </span>
                   </div>
                   <button
@@ -644,7 +736,7 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
                     Simulate Failure
                   </button>
                   <button
-                    :if={breaker && display_state != :closed}
+                    :if={bd.display_state != :closed}
                     phx-click="reset_breaker"
                     phx-value-name={platform}
                     class="px-2.5 py-1 text-xs text-success border border-success/30 rounded-lg hover:bg-success/10"
@@ -654,17 +746,15 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
                 </div>
               </div>
               <p class="text-xs text-base-content/40 mt-1 sm:hidden">{breaker_protects(platform)}</p>
-              <% breaker_result = @breaker_results[platform] %>
-              <% breaker_msg = breaker_result && breaker_result_message(platform, breaker_result, breaker) %>
               <div
-                :if={breaker_msg}
+                :if={bd.message}
                 class={[
                   "mt-2 p-2.5 rounded-lg border text-xs",
-                  elem(breaker_result, 0) == :tripped && "bg-error/10 border-error/30 text-error",
-                  elem(breaker_result, 0) == :reset && "bg-success/10 border-success/30 text-success"
+                  bd.message_kind == :tripped && "bg-error/10 border-error/30 text-error",
+                  bd.message_kind == :reset && "bg-success/10 border-success/30 text-success"
                 ]}
               >
-                {breaker_msg}
+                {bd.message}
               </div>
             </div>
           </div>
