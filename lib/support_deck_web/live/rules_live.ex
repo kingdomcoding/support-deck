@@ -398,7 +398,7 @@ defmodule SupportDeckWeb.RulesLive do
                 </select>
               </div>
             </div>
-            <div class="flex gap-3">
+            <div class="flex items-center gap-3">
               <button
                 type="submit"
                 class="px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
@@ -412,6 +412,16 @@ defmodule SupportDeckWeb.RulesLive do
               >
                 Cancel
               </.link>
+              <button
+                :if={@mode == :edit}
+                type="button"
+                phx-click="delete"
+                phx-value-id={@selected_rule.id}
+                data-confirm="Delete this rule?"
+                class="ml-auto px-4 py-2 text-sm text-error border border-error/30 rounded-lg hover:bg-error/10"
+              >
+                Delete Rule
+              </button>
             </div>
           </form>
         </div>
@@ -445,9 +455,6 @@ defmodule SupportDeckWeb.RulesLive do
               <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
                 Status
               </th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-base-content/60 uppercase">
-                Actions
-              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-base-300">
@@ -475,16 +482,6 @@ defmodule SupportDeckWeb.RulesLive do
                   ]}
                 >
                   {if rule.enabled, do: "Enabled", else: "Disabled"}
-                </button>
-              </td>
-              <td class="px-4 py-3 text-right">
-                <button
-                  phx-click="delete"
-                  phx-value-id={rule.id}
-                  data-confirm="Delete this rule?"
-                  class="text-sm text-error hover:text-error/80"
-                >
-                  Delete
                 </button>
               </td>
             </tr>
