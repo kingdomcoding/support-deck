@@ -199,6 +199,27 @@ rules = [
     actions_list: [%{"type" => "linear_create", "params" => %{"team" => "Database"}}],
     priority: 20,
     enabled: true
+  },
+  %{
+    name: "Auto-reply to Front auth tickets",
+    trigger: :ticket_created,
+    conditions: %{
+      "all" => [
+        %{"field" => "product_area", "op" => "eq", "value" => "auth"},
+        %{"field" => "source", "op" => "eq", "value" => "front"}
+      ]
+    },
+    actions_list: [
+      %{
+        "type" => "front_reply",
+        "params" => %{
+          "body" =>
+            "Thank you for reporting this auth issue. We're looking into it and will respond shortly. In the meantime, please check https://supabase.com/docs/guides/auth for troubleshooting steps."
+        }
+      }
+    ],
+    priority: 10,
+    enabled: true
   }
 ]
 
