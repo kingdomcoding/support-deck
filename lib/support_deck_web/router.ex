@@ -44,7 +44,6 @@ defmodule SupportDeckWeb.Router do
       live "/sla", SLADashboardLive, :index
       live "/sla/policies", SLAPoliciesLive, :index
       live "/integrations", IntegrationHealthLive, :index
-      live "/ai", AIDashboardLive, :index
       live "/rules", RulesLive, :index
       live "/rules/new", RulesLive, :new
       live "/rules/:id/edit", RulesLive, :edit

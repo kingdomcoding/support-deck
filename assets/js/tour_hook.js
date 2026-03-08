@@ -68,21 +68,6 @@ const TOUR = [
     ],
   },
   {
-    path: "/ai",
-    steps: [
-      {
-        element: "[data-tour='triage-results']",
-        popover: {
-          title: "AI Classification",
-          description:
-            "Tickets are classified by an LLM prompt action \u2014 category, severity, and a confidence score. Results feed back into the rule engine.",
-          side: "top",
-          align: "center",
-        },
-      },
-    ],
-  },
-  {
     path: "/rules",
     steps: [
       {

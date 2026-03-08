@@ -126,7 +126,7 @@ defmodule SupportDeckWeb.OverviewLive do
           label="AI Triages (24h)"
           value={@stats.ai_triages_24h}
           icon="hero-sparkles"
-          href={~p"/ai"}
+          href={~p"/tickets"}
           variant="accent"
         />
       </div>

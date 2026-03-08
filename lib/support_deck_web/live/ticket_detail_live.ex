@@ -9,7 +9,6 @@ defmodule SupportDeckWeb.TicketDetailLive do
     back_label =
       cond do
         String.starts_with?(back_path, "/sla") -> "Back to SLA Monitor"
-        String.starts_with?(back_path, "/ai") -> "Back to AI Triage"
         back_path == "/" -> "Back to Dashboard"
         true -> "Back to Tickets"
       end

@@ -17,8 +17,8 @@ defmodule SupportDeckWeb.GuidedTourLive do
       description:
         "An Oban worker picks up the ticket, calls the AI provider (or simulates classification), and records a triage result with predicted category, severity, and confidence score.",
       action_label: "Run AI Triage",
-      result_link: "/ai",
-      result_link_label: "View AI Dashboard",
+      result_link: "/tickets",
+      result_link_label: "View Tickets",
       patterns: ["Oban worker", "Prompt-backed action", "AI classification"]
     },
     %{

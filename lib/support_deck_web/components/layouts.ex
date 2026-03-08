@@ -60,13 +60,6 @@ defmodule SupportDeckWeb.Layouts do
               Intelligence
             </p>
             <.nav_item
-              path={~p"/ai"}
-              current={assigns[:current_path]}
-              icon="hero-sparkles"
-              label="AI Triage"
-              tour="ai"
-            />
-            <.nav_item
               path={~p"/rules"}
               current={assigns[:current_path]}
               icon="hero-bolt"

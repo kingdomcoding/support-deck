@@ -58,6 +58,17 @@ defmodule SupportDeckWeb.TicketQueueLive do
     {:noreply, assign(socket, :show_create, false)}
   end
 
+  def handle_event("triage_all", _, socket) do
+    new_tickets = Enum.filter(socket.assigns.tickets, &(&1.state == :new))
+
+    enqueued =
+      Enum.count(new_tickets, fn ticket ->
+        match?({:ok, _}, SupportDeck.Workers.AITriageWorker.new(%{ticket_id: ticket.id}) |> Oban.insert())
+      end)
+
+    {:noreply, put_flash(socket, :info, "AI triage queued for #{enqueued} ticket(s)")}
+  end
+
   def handle_event("create_ticket", params, socket) do
     attrs = %{
       external_id: "ui-#{System.unique_integer([:positive])}",
@@ -174,6 +185,13 @@ defmodule SupportDeckWeb.TicketQueueLive do
         patterns={["AshStateMachine", "PubSub", "Named read actions"]}
       >
         <:actions>
+          <button
+            phx-click="triage_all"
+            phx-disable-with="Triaging..."
+            class="px-3 py-1.5 text-sm border border-base-300 rounded-lg hover:bg-base-200 inline-flex items-center gap-1.5"
+          >
+            <.icon name="hero-sparkles" class="size-3.5" /> Triage All
+          </button>
           <button
             data-tour="create-ticket-btn"
             phx-click="new_ticket"
