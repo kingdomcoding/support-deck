@@ -2,6 +2,7 @@ defmodule SupportDeck.Workers.AITriageWorker do
   use Oban.Worker, queue: :ai_triage, max_attempts: 3
 
   alias SupportDeck.{Tickets, AI}
+  alias SupportDeck.Integrations.Anthropic
 
   require Logger
 
@@ -47,37 +48,37 @@ defmodule SupportDeck.Workers.AITriageWorker do
   end
 
   defp classify(ticket) do
-    # Placeholder classification until ash_ai is integrated.
-    # Returns a mock result based on simple keyword heuristics.
-    body = ticket.body || ""
     subject = ticket.subject || ""
+    body = ticket.body || ""
+
+    case Anthropic.Client.classify(subject, body) do
+      {:ok, classification} ->
+        Logger.info("ai.triage.anthropic_success", ticket_id: ticket.id)
+        classification
+
+      {:error, reason} ->
+        Logger.warning("ai.triage.anthropic_fallback",
+          ticket_id: ticket.id,
+          reason: inspect(reason)
+        )
+
+        classify_heuristic(subject, body)
+    end
+  end
+
+  defp classify_heuristic(subject, body) do
     text = String.downcase(subject <> " " <> body)
 
     product_area =
       cond do
-        String.contains?(text, "auth") or String.contains?(text, "login") ->
-          "auth"
-
-        String.contains?(text, "database") or String.contains?(text, "postgres") ->
-          "database"
-
-        String.contains?(text, "storage") or String.contains?(text, "bucket") ->
-          "storage"
-
-        String.contains?(text, "function") or String.contains?(text, "edge function") ->
-          "functions"
-
-        String.contains?(text, "realtime") or String.contains?(text, "websocket") ->
-          "realtime"
-
-        String.contains?(text, "dashboard") ->
-          "dashboard"
-
-        String.contains?(text, "billing") or String.contains?(text, "invoice") ->
-          "billing"
-
-        true ->
-          "general"
+        String.contains?(text, "auth") or String.contains?(text, "login") -> "auth"
+        String.contains?(text, "database") or String.contains?(text, "postgres") -> "database"
+        String.contains?(text, "storage") or String.contains?(text, "bucket") -> "storage"
+        String.contains?(text, "function") or String.contains?(text, "edge function") -> "functions"
+        String.contains?(text, "realtime") or String.contains?(text, "websocket") -> "realtime"
+        String.contains?(text, "dashboard") -> "dashboard"
+        String.contains?(text, "billing") or String.contains?(text, "invoice") -> "billing"
+        true -> "general"
       end
 
     severity =
@@ -90,11 +91,8 @@ defmodule SupportDeck.Workers.AITriageWorker do
             String.contains?(text, "fail") ->
           "high"
 
-        String.contains?(text, "issue") or String.contains?(text, "problem") ->
-          "medium"
-
-        true ->
-          "low"
+        String.contains?(text, "issue") or String.contains?(text, "problem") -> "medium"
+        true -> "low"
       end
 
     %{
@@ -102,7 +100,7 @@ defmodule SupportDeck.Workers.AITriageWorker do
       "severity" => severity,
       "is_repetitive" => false,
       "confidence" => 0.6,
-      "reasoning" => "Placeholder classification based on keyword matching"
+      "reasoning" => "Heuristic classification (Anthropic API not available)"
     }
   end
 
