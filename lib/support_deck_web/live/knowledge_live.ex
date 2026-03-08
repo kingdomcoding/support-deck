@@ -3,6 +3,8 @@ defmodule SupportDeckWeb.KnowledgeLive do
   alias SupportDeckWeb.ErrorHelpers
 
   @content_types [:doc, :resolved_ticket, :faq]
+  @product_areas ["auth", "database", "storage", "functions", "realtime", "dashboard", "billing", "general"]
+  @tiers ["free", "pro", "team", "enterprise"]
 
   @impl true
   def mount(_params, _session, socket) do
@@ -11,6 +13,8 @@ defmodule SupportDeckWeb.KnowledgeLive do
      |> assign(:page_title, "Knowledge Base")
      |> assign(:current_path, ~p"/knowledge")
      |> assign(:content_types, @content_types)
+     |> assign(:product_areas, @product_areas)
+     |> assign(:tiers, @tiers)
      |> assign(:filter_type, nil)
      |> assign(:mode, :index)
      |> assign(:selected_doc, nil)
@@ -36,7 +40,9 @@ defmodule SupportDeckWeb.KnowledgeLive do
        "content" => "",
        "content_type" => "doc",
        "source_url" => "",
-       "metadata" => "{}"
+       "product_area" => "",
+       "tags" => "",
+       "applicable_tiers" => []
      })}
   end
 
@@ -54,7 +60,9 @@ defmodule SupportDeckWeb.KnowledgeLive do
            "content" => doc.content,
            "content_type" => to_string(doc.content_type),
            "source_url" => doc.source_url || "",
-           "metadata" => Jason.encode!(doc.metadata || %{})
+           "product_area" => get_in(doc.metadata, ["product_area"]) || "",
+           "tags" => (get_in(doc.metadata, ["tags"]) || []) |> Enum.join(", "),
+           "applicable_tiers" => get_in(doc.metadata, ["applicable_tiers"]) || []
          })}
     end
   end
@@ -65,43 +73,38 @@ defmodule SupportDeckWeb.KnowledgeLive do
   end
 
   def handle_event("save", params, socket) do
-    case Jason.decode(params["metadata"]) do
-      {:error, %Jason.DecodeError{} = err} ->
+    metadata = build_metadata(params)
+
+    result =
+      case socket.assigns.mode do
+        :new ->
+          SupportDeck.AI.add_knowledge_doc(%{
+            content: params["content"],
+            content_type: String.to_existing_atom(params["content_type"]),
+            source_url: if(params["source_url"] != "", do: params["source_url"]),
+            metadata: metadata
+          })
+
+        :edit ->
+          SupportDeck.AI.update_knowledge_doc(socket.assigns.selected_doc, %{
+            content: params["content"],
+            metadata: metadata
+          })
+      end
+
+    case result do
+      {:ok, _} ->
         {:noreply,
-         put_flash(socket, :error, "Invalid JSON in metadata: #{Exception.message(err)}")}
+         socket
+         |> assign(:mode, :index)
+         |> assign(:selected_doc, nil)
+         |> assign(:form_data, nil)
+         |> put_flash(:info, "Document saved")
+         |> load_docs()}
 
-      {:ok, metadata} ->
-        result =
-          case socket.assigns.mode do
-            :new ->
-              SupportDeck.AI.add_knowledge_doc(%{
-                content: params["content"],
-                content_type: String.to_existing_atom(params["content_type"]),
-                source_url: if(params["source_url"] != "", do: params["source_url"]),
-                metadata: metadata
-              })
-
-            :edit ->
-              SupportDeck.AI.update_knowledge_doc(socket.assigns.selected_doc, %{
-                content: params["content"],
-                metadata: metadata
-              })
-          end
-
-        case result do
-          {:ok, _} ->
-            {:noreply,
-             socket
-             |> assign(:mode, :index)
-             |> assign(:selected_doc, nil)
-             |> assign(:form_data, nil)
-             |> put_flash(:info, "Document saved")
-             |> load_docs()}
-
-          {:error, err} ->
-            {:noreply,
-             put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
-        end
+      {:error, err} ->
+        {:noreply,
+         put_flash(socket, :error, "Save failed: #{ErrorHelpers.format_error(err)}")}
     end
   end
 
@@ -119,6 +122,22 @@ defmodule SupportDeckWeb.KnowledgeLive do
             {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}
         end
     end
+  end
+
+  defp build_metadata(params) do
+    tags =
+      (params["tags"] || "")
+      |> String.split(",")
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == ""))
+
+    tiers = List.wrap(params["applicable_tiers"] || [])
+
+    metadata = %{}
+    metadata = if params["product_area"] != "", do: Map.put(metadata, "product_area", params["product_area"]), else: metadata
+    metadata = if tags != [], do: Map.put(metadata, "tags", tags), else: metadata
+    metadata = if tiers != [], do: Map.put(metadata, "applicable_tiers", tiers), else: metadata
+    metadata
   end
 
   defp load_docs(socket) do
@@ -207,17 +226,57 @@ defmodule SupportDeckWeb.KnowledgeLive do
                 class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
               >{@form_data["content"]}</textarea>
             </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">
+                  Product Area
+                </label>
+                <select
+                  name="product_area"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+                >
+                  <option value="">None</option>
+                  <option
+                    :for={area <- @product_areas}
+                    value={area}
+                    selected={@form_data["product_area"] == area}
+                  >
+                    {area}
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-base-content/80 mb-1">
+                  Tags
+                </label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={@form_data["tags"]}
+                  placeholder="auth, login, sso"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+                />
+                <p class="text-[10px] text-base-content/40 mt-0.5">Comma-separated</p>
+              </div>
+            </div>
             <div>
               <label class="block text-sm font-medium text-base-content/80 mb-1">
-                Metadata (JSON)
+                Applicable Tiers
               </label>
-              <textarea
-                name="metadata"
-                rows="2"
-                class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm font-mono bg-base-100"
-              >{@form_data["metadata"]}</textarea>
+              <div class="flex gap-4">
+                <label :for={tier <- @tiers} class="inline-flex items-center gap-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    name="applicable_tiers[]"
+                    value={tier}
+                    checked={tier in (@form_data["applicable_tiers"] || [])}
+                    class="rounded border-base-300"
+                  />
+                  {tier}
+                </label>
+              </div>
             </div>
-            <div class="flex gap-3">
+            <div class="flex items-center gap-3">
               <button
                 type="submit"
                 class="px-4 py-2 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"
@@ -231,6 +290,16 @@ defmodule SupportDeckWeb.KnowledgeLive do
                 class="px-4 py-2 text-sm border border-base-300 rounded-lg hover:bg-base-200"
               >
                 Cancel
+              </button>
+              <button
+                :if={@mode == :edit}
+                type="button"
+                phx-click="delete"
+                phx-value-id={@selected_doc.id}
+                data-confirm="Delete this document?"
+                class="ml-auto px-4 py-2 text-sm text-error border border-error/30 rounded-lg hover:bg-error/10"
+              >
+                Delete Document
               </button>
             </div>
           </form>
@@ -265,32 +334,18 @@ defmodule SupportDeckWeb.KnowledgeLive do
           phx-click="edit"
           phx-value-id={doc.id}
         >
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <span class="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary border border-primary/20">
-                  {doc.content_type}
-                </span>
-                <span :if={doc.source_url} class="text-xs text-base-content/40">
-                  {doc.source_url}
-                </span>
-              </div>
-              <p class="text-sm text-base-content/80 line-clamp-3">{doc.content}</p>
-              <p class="text-xs text-base-content/40 mt-2">
-                {Calendar.strftime(doc.inserted_at, "%Y-%m-%d %H:%M")}
-              </p>
-            </div>
-            <div class="ml-4">
-              <button
-                phx-click="delete"
-                phx-value-id={doc.id}
-                data-confirm="Delete this document?"
-                class="text-sm text-error hover:text-error/80"
-              >
-                Delete
-              </button>
-            </div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary border border-primary/20">
+              {doc.content_type}
+            </span>
+            <span :if={doc.source_url} class="text-xs text-base-content/40">
+              {doc.source_url}
+            </span>
           </div>
+          <p class="text-sm text-base-content/80 line-clamp-3">{doc.content}</p>
+          <p class="text-xs text-base-content/40 mt-2">
+            {Calendar.strftime(doc.inserted_at, "%Y-%m-%d %H:%M")}
+          </p>
         </div>
       </div>
     </div>

@@ -111,6 +111,25 @@ defmodule SupportDeckWeb.RulesLive do
     end
   end
 
+  def handle_event("update_form", params, socket) do
+    conditions = sync_conditions(params["conditions"] || %{}, socket.assigns.conditions)
+    actions = sync_actions(params["actions"] || %{}, socket.assigns.actions_list)
+
+    form_data = %{
+      "name" => params["name"] || "",
+      "description" => params["description"] || "",
+      "trigger" => params["trigger"] || "ticket_created",
+      "enabled" => params["enabled"] || "true",
+      "priority" => params["priority"] || "0"
+    }
+
+    {:noreply,
+     socket
+     |> assign(:form_data, form_data)
+     |> assign(:conditions, conditions)
+     |> assign(:actions_list, actions)}
+  end
+
   def handle_event("add_condition", _, socket) do
     conditions =
       socket.assigns.conditions ++ [%{"field" => "severity", "op" => "eq", "value" => ""}]
@@ -202,6 +221,47 @@ defmodule SupportDeckWeb.RulesLive do
     |> Enum.reject(fn a -> a["value"] == "" end)
   end
 
+  defp sync_conditions(params, existing) when is_map(params) do
+    params
+    |> Enum.sort_by(fn {k, _} -> String.to_integer(k) end)
+    |> Enum.with_index()
+    |> Enum.map(fn {{_, v}, i} ->
+      old = Enum.at(existing, i) || %{}
+      field = v["field"] || old["field"] || "severity"
+      value = if field != old["field"], do: "", else: v["value"] || ""
+      %{"field" => field, "op" => v["op"] || "eq", "value" => value}
+    end)
+  end
+
+  defp sync_conditions(_, existing), do: existing
+
+  defp sync_actions(params, existing) when is_map(params) do
+    params
+    |> Enum.sort_by(fn {k, _} -> String.to_integer(k) end)
+    |> Enum.with_index()
+    |> Enum.map(fn {{_, v}, i} ->
+      old = Enum.at(existing, i) || %{}
+      type = v["type"] || old["type"] || "assign"
+      value = if type != old["type"], do: "", else: v["value"] || ""
+      %{"type" => type, "value" => value}
+    end)
+  end
+
+  defp sync_actions(_, existing), do: existing
+
+  defp condition_values("severity"), do: ["low", "medium", "high", "critical"]
+  defp condition_values("source"), do: ["manual", "front", "slack", "linear"]
+  defp condition_values("subscription_tier"), do: ["free", "pro", "team", "enterprise"]
+  defp condition_values("product_area"), do: ["auth", "database", "storage", "functions", "realtime", "dashboard", "billing", "general"]
+  defp condition_values(_), do: []
+
+  defp action_values("assign"), do: ["support-l1", "support-l2", "support-l3", "engineering"]
+  defp action_values("set_severity"), do: ["low", "medium", "high", "critical"]
+  defp action_values("set_product_area"), do: ["auth", "database", "storage", "functions", "realtime", "dashboard", "billing", "general"]
+  defp action_values("notify"), do: ["slack", "email"]
+  defp action_values("escalate"), do: ["1", "2", "3"]
+  defp action_values(_), do: []
+
   defp load_rules(socket) do
     rules =
       case SupportDeck.Tickets.list_all_rules() do
@@ -237,7 +297,7 @@ defmodule SupportDeckWeb.RulesLive do
           <h2 class="text-lg font-semibold text-base-content mb-4">
             {if @mode == :new, do: "New Rule", else: "Edit Rule"}
           </h2>
-          <form phx-submit="save" class="space-y-4">
+          <form phx-submit="save" phx-change="update_form" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-base-content/80 mb-1">Name</label>
@@ -306,13 +366,19 @@ defmodule SupportDeckWeb.RulesLive do
                       {op}
                     </option>
                   </select>
-                  <input
-                    type="text"
+                  <select
                     name={"conditions[#{i}][value]"}
-                    value={cond_item["value"]}
                     class="px-2 py-1.5 border border-base-300 rounded text-xs bg-base-100 flex-1"
-                    placeholder="value"
-                  />
+                  >
+                    <option value="" disabled selected={cond_item["value"] == ""}>select...</option>
+                    <option
+                      :for={v <- condition_values(cond_item["field"])}
+                      value={v}
+                      selected={cond_item["value"] == v}
+                    >
+                      {v}
+                    </option>
+                  </select>
                   <button
                     type="button"
                     phx-click="remove_condition"
@@ -351,13 +417,19 @@ defmodule SupportDeckWeb.RulesLive do
                       {t}
                     </option>
                   </select>
-                  <input
-                    type="text"
+                  <select
                     name={"actions[#{i}][value]"}
-                    value={action_item["value"]}
                     class="px-2 py-1.5 border border-base-300 rounded text-xs bg-base-100 flex-1"
-                    placeholder="value"
-                  />
+                  >
+                    <option value="" disabled selected={action_item["value"] == ""}>select...</option>
+                    <option
+                      :for={v <- action_values(action_item["type"])}
+                      value={v}
+                      selected={action_item["value"] == v}
+                    >
+                      {v}
+                    </option>
+                  </select>
                   <button
                     type="button"
                     phx-click="remove_action"
