@@ -33,9 +33,7 @@ defmodule SupportDeck.Workers.AITriageWorker do
         processing_time_ms: elapsed
       })
 
-      if classification["is_repetitive"] && classification["confidence"] > 0.85 do
-        Tickets.begin_triage(ticket)
-      end
+      Tickets.begin_triage(ticket)
 
       Logger.info("ai.triage.completed",
         ticket_id: ticket_id,

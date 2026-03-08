@@ -348,6 +348,13 @@ defmodule SupportDeck.Tickets.Ticket do
     update :apply_ai_results do
       require_atomic?(false)
       accept([:ai_classification, :ai_draft_response, :ai_confidence, :product_area, :severity, :subscription_tier])
+
+      change(fn changeset, _ctx ->
+        Ash.Changeset.after_action(changeset, fn _changeset, ticket ->
+          log_and_broadcast(ticket, "ai_triage", "system", "completed")
+          {:ok, ticket}
+        end)
+      end)
     end
 
     update :link_linear_issue do

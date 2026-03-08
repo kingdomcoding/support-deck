@@ -188,9 +188,9 @@ defmodule SupportDeckWeb.TicketQueueLive do
           <button
             phx-click="triage_all"
             phx-disable-with="Triaging..."
-            class="px-3 py-1.5 text-sm border border-base-300 rounded-lg hover:bg-base-200 inline-flex items-center gap-1.5"
+            class="px-3 py-1.5 text-sm bg-base-100 text-base-content border border-base-300 rounded-lg hover:bg-base-200 inline-flex items-center gap-1.5"
           >
-            <.icon name="hero-sparkles" class="size-3.5" /> Triage All
+            <.icon name="hero-sparkles" class="size-3.5" /> Triage New Tickets
           </button>
           <button
             data-tour="create-ticket-btn"

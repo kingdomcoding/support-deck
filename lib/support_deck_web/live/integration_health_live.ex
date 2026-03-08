@@ -18,10 +18,6 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
   end
 
   @impl true
-  def handle_event("refresh", _, socket) do
-    {:noreply, load_statuses(socket)}
-  end
-
   def handle_event("reset_breaker", %{"name" => name}, socket) do
     CircuitBreaker.reset(String.to_existing_atom(name))
     {:noreply, socket |> put_flash(:info, "#{name} breaker reset") |> load_statuses()}
@@ -84,12 +80,6 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
         patterns={["Circuit breaker", "GenServer", "ETS state"]}
       >
         <:actions>
-          <button
-            phx-click="refresh"
-            class="px-3 py-1.5 text-sm border border-base-300 rounded-lg hover:bg-base-200"
-          >
-            Refresh
-          </button>
           <.link
             navigate={~p"/settings"}
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"

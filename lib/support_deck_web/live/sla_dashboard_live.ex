@@ -41,17 +41,6 @@ defmodule SupportDeckWeb.SLADashboardLive do
   def handle_info(_, socket), do: {:noreply, socket}
 
   @impl true
-  def handle_event("refresh", _, socket) do
-    breaching =
-      case SupportDeck.Tickets.list_breaching_sla() do
-        {:ok, tickets} -> tickets
-        _ -> []
-      end
-
-    {:noreply, assign(socket, :breaching_tickets, breaching)}
-  end
-
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-6 py-6">
@@ -61,12 +50,6 @@ defmodule SupportDeckWeb.SLADashboardLive do
         patterns={["AshOban triggers", "SLA Buddy pattern", "Named read actions"]}
       >
         <:actions>
-          <button
-            phx-click="refresh"
-            class="px-3 py-1.5 text-sm border border-base-300 rounded-lg hover:bg-base-200"
-          >
-            Refresh
-          </button>
           <.link
             navigate={~p"/sla/policies"}
             class="px-3 py-1.5 text-sm bg-primary text-primary-content rounded-lg hover:bg-primary/90"

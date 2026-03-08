@@ -14,6 +14,7 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
      |> assign(:tiers, @tiers)
      |> assign(:severities, @severities)
      |> assign(:editing, nil)
+     |> assign(:creating, nil)
      |> assign(:form, nil)
      |> load_policies()}
   end
@@ -27,11 +28,11 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
       "resolution_minutes" => to_string(policy.resolution_minutes || "")
     }
 
-    {:noreply, socket |> assign(:editing, id) |> assign(:form, form_data)}
+    {:noreply, socket |> assign(:editing, id) |> assign(:creating, nil) |> assign(:form, form_data)}
   end
 
   def handle_event("cancel_edit", _, socket) do
-    {:noreply, socket |> assign(:editing, nil) |> assign(:form, nil)}
+    {:noreply, socket |> assign(:editing, nil) |> assign(:creating, nil) |> assign(:form, nil)}
   end
 
   def handle_event("save", %{"first_response_minutes" => frm, "resolution_minutes" => rm}, socket) do
@@ -68,26 +69,57 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
     end
   end
 
-  def handle_event("create_default", %{"tier" => tier, "severity" => severity}, socket) do
+  def handle_event("new_policy", %{"tier" => tier, "severity" => severity}, socket) do
     tier_atom = String.to_existing_atom(tier)
     sev_atom = String.to_existing_atom(severity)
-    response_min = SupportDeck.SLADomain.deadline_minutes(tier_atom, sev_atom) || 60
+    default_response = SupportDeck.SLADomain.deadline_minutes(tier_atom, sev_atom) || 60
 
-    attrs = %{
-      name: "#{tier}/#{severity}",
-      subscription_tier: tier_atom,
-      severity: sev_atom,
-      first_response_minutes: response_min,
-      resolution_minutes: response_min * 4,
-      escalation_thresholds: %{"warning" => 80, "critical" => 100}
+    form_data = %{
+      "first_response_minutes" => to_string(default_response),
+      "resolution_minutes" => to_string(default_response * 4)
     }
 
-    case SupportDeck.SLADomain.create_policy(attrs) do
-      {:ok, _} ->
-        {:noreply, socket |> put_flash(:info, "Policy created") |> load_policies()}
+    {:noreply,
+     socket
+     |> assign(:creating, {tier_atom, sev_atom})
+     |> assign(:editing, nil)
+     |> assign(:form, form_data)}
+  end
 
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Create failed: #{ErrorHelpers.format_error(err)}")}
+  def handle_event("create_policy", %{"first_response_minutes" => frm, "resolution_minutes" => rm}, socket) do
+    {tier, severity} = socket.assigns.creating
+
+    with {frm_int, ""} <- Integer.parse(frm),
+         true <- frm_int > 0 do
+      rm_int =
+        case Integer.parse(rm) do
+          {v, ""} when v > 0 -> v
+          _ -> nil
+        end
+
+      attrs = %{
+        name: "#{tier}/#{severity}",
+        subscription_tier: tier,
+        severity: severity,
+        first_response_minutes: frm_int,
+        resolution_minutes: rm_int,
+        escalation_thresholds: %{"warning" => 80, "critical" => 100}
+      }
+
+      case SupportDeck.SLADomain.create_policy(attrs) do
+        {:ok, _} ->
+          {:noreply,
+           socket
+           |> assign(:creating, nil)
+           |> assign(:form, nil)
+           |> put_flash(:info, "Policy created")
+           |> load_policies()}
+
+        {:error, err} ->
+          {:noreply, put_flash(socket, :error, "Create failed: #{ErrorHelpers.format_error(err)}")}
+      end
+    else
+      _ -> {:noreply, put_flash(socket, :error, "Minutes must be a positive number")}
     end
   end
 
@@ -180,7 +212,7 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                           class="w-20 px-1 py-0.5 text-xs border border-base-300 rounded bg-base-100"
                         />
                       </div>
-                      <div class="flex gap-1">
+                      <div class="flex gap-1 items-center">
                         <button
                           type="submit"
                           class="px-2 py-0.5 text-[10px] bg-primary text-primary-content rounded"
@@ -195,41 +227,82 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
                         >
                           Cancel
                         </button>
+                        <button
+                          type="button"
+                          phx-click="delete_policy"
+                          phx-value-id={policy.id}
+                          data-confirm="Delete this SLA policy?"
+                          class="ml-auto px-2 py-0.5 text-[10px] text-error border border-error/30 rounded hover:bg-error/10"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </form>
                   <% else %>
-                    <div class="group relative">
-                      <button
-                        phx-click="edit"
-                        phx-value-id={policy.id}
-                        class="text-left hover:bg-base-200 p-1 rounded w-full"
-                      >
-                        <p class="text-sm font-medium text-base-content">
-                          {policy.first_response_minutes}m
-                        </p>
-                        <p class="text-[10px] text-base-content/40">
-                          resolve: {policy.resolution_minutes || "—"}m
-                        </p>
-                      </button>
-                      <button
-                        phx-click="delete_policy"
-                        phx-value-id={policy.id}
-                        data-confirm="Delete this SLA policy?"
-                        class="absolute -top-1 -right-1 hidden group-hover:block text-[10px] text-error hover:text-error/80 bg-base-100 rounded-full px-1"
-                      >
-                        ×
-                      </button>
-                    </div>
+                    <button
+                      phx-click="edit"
+                      phx-value-id={policy.id}
+                      class="text-left hover:bg-base-200 p-1 rounded w-full"
+                    >
+                      <p class="text-sm font-medium text-base-content">
+                        {policy.first_response_minutes}m
+                      </p>
+                      <p class="text-[10px] text-base-content/40">
+                        resolve: {policy.resolution_minutes || "—"}m
+                      </p>
+                    </button>
                   <% end %>
                 <% else %>
-                  <button
-                    phx-click="create_default"
-                    phx-value-tier={tier}
-                    phx-value-severity={sev}
-                    class="px-2 py-1 text-[10px] text-base-content/40 border border-dashed border-base-300 rounded hover:border-primary/30 hover:text-primary"
-                  >
-                    + Add
-                  </button>
+                  <%= if @creating == {tier, sev} do %>
+                    <form phx-submit="create_policy" class="space-y-1">
+                      <div>
+                        <label class="text-[10px] text-base-content/40">Response (min)</label>
+                        <input
+                          type="number"
+                          name="first_response_minutes"
+                          value={@form["first_response_minutes"]}
+                          min="1"
+                          required
+                          class="w-20 px-1 py-0.5 text-xs border border-base-300 rounded bg-base-100"
+                        />
+                      </div>
+                      <div>
+                        <label class="text-[10px] text-base-content/40">Resolution (min)</label>
+                        <input
+                          type="number"
+                          name="resolution_minutes"
+                          value={@form["resolution_minutes"]}
+                          min="1"
+                          class="w-20 px-1 py-0.5 text-xs border border-base-300 rounded bg-base-100"
+                        />
+                      </div>
+                      <div class="flex gap-1">
+                        <button
+                          type="submit"
+                          class="px-2 py-0.5 text-[10px] bg-primary text-primary-content rounded"
+                          phx-disable-with="..."
+                        >
+                          Create
+                        </button>
+                        <button
+                          type="button"
+                          phx-click="cancel_edit"
+                          class="px-2 py-0.5 text-[10px] border border-base-300 rounded"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  <% else %>
+                    <button
+                      phx-click="new_policy"
+                      phx-value-tier={tier}
+                      phx-value-severity={sev}
+                      class="px-2 py-1 text-[10px] text-base-content/40 border border-dashed border-base-300 rounded hover:border-primary/30 hover:text-primary"
+                    >
+                      + Add
+                    </button>
+                  <% end %>
                 <% end %>
               </td>
             </tr>
