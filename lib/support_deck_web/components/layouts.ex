@@ -87,13 +87,6 @@ defmodule SupportDeckWeb.Layouts do
               label="Integrations"
               tour="integrations"
             />
-            <.nav_item
-              path={~p"/settings"}
-              current={assigns[:current_path]}
-              icon="hero-cog-6-tooth"
-              label="Settings"
-              tour="settings"
-            />
           </div>
         </div>
 

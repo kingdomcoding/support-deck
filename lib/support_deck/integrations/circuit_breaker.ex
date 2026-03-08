@@ -42,8 +42,8 @@ defmodule SupportDeck.Integrations.CircuitBreaker do
 
   def get_status(breaker_name) do
     case :ets.lookup(:circuit_breakers, breaker_name) do
-      [{_, state, failures, last_failure_at, _opts}] ->
-        %{state: state, failures: failures, last_failure_at: last_failure_at}
+      [{_, state, failures, last_failure_at, opts}] ->
+        %{state: state, failures: failures, last_failure_at: last_failure_at, cooldown_ms: opts.cooldown}
 
       [] ->
         %{state: :closed, failures: 0, last_failure_at: nil}

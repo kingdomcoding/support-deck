@@ -192,7 +192,7 @@ defmodule SupportDeckWeb.OverviewLive do
                 <.icon name="hero-bolt" class="size-4 text-primary" /> Automation Rules
               </.link>
               <.link
-                navigate={~p"/settings"}
+                navigate={~p"/integrations"}
                 class="flex items-center gap-2 text-sm text-base-content/70 hover:text-base-content py-1"
               >
                 <.icon name="hero-key" class="size-4 text-primary" /> Configure Credentials

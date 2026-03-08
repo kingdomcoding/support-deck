@@ -25,15 +25,25 @@ defmodule SupportDeckWeb.Plugs.WebhookSignature do
     timestamp = get_req_header(conn, "x-slack-request-timestamp") |> List.first()
     signature = get_req_header(conn, "x-slack-signature") |> List.first()
 
-    with :ok <- check_timestamp_freshness(timestamp),
-         base_string = "v0:#{timestamp}:#{conn.assigns[:raw_body]}",
-         expected =
-           "v0=" <>
-             (:crypto.mac(:hmac, :sha256, secret, base_string) |> Base.encode16(case: :lower)),
-         true <- Plug.Crypto.secure_compare(expected, signature || "") do
-      :ok
-    else
-      _ -> {:error, :invalid_signature}
+    case {secret, timestamp, signature} do
+      {nil, _, _} ->
+        skip_in_dev()
+
+      {_, nil, _} ->
+        skip_in_dev()
+
+      {s, ts, sig} ->
+        with :ok <- check_timestamp_freshness(ts),
+             base_string = "v0:#{ts}:#{conn.assigns[:raw_body]}",
+             expected =
+               "v0=" <>
+                 (:crypto.mac(:hmac, :sha256, s, base_string)
+                  |> Base.encode16(case: :lower)),
+             true <- Plug.Crypto.secure_compare(expected, sig || "") do
+          :ok
+        else
+          _ -> {:error, :invalid_signature}
+        end
     end
   end
 

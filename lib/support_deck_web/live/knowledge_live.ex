@@ -116,7 +116,13 @@ defmodule SupportDeckWeb.KnowledgeLive do
       doc ->
         case SupportDeck.AI.delete_knowledge_doc(doc) do
           :ok ->
-            {:noreply, socket |> put_flash(:info, "Document deleted") |> load_docs()}
+            {:noreply,
+             socket
+             |> assign(:mode, :index)
+             |> assign(:selected_doc, nil)
+             |> assign(:form_data, nil)
+             |> put_flash(:info, "Document deleted")
+             |> load_docs()}
 
           {:error, err} ->
             {:noreply, put_flash(socket, :error, "Delete failed: #{ErrorHelpers.format_error(err)}")}

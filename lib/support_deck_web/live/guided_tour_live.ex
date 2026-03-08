@@ -40,22 +40,13 @@ defmodule SupportDeckWeb.GuidedTourLive do
       patterns: ["AshOban triggers", "SLA Buddy pattern", "Scheduled workers"]
     },
     %{
-      title: "5. Circuit Breaker Fault Tolerance",
+      title: "5. Integrations & Credential Vault",
       description:
-        "Each integration (Front, Slack, Linear) has a GenServer-backed circuit breaker. After consecutive failures it 'trips', stopping requests. It auto-recovers with a half-open probe.",
-      action_label: "Trip Front Breaker",
+        "Each integration has a GenServer-backed circuit breaker for fault tolerance. API keys are encrypted with AES-256-GCM, decrypted on demand, and cached in ETS. Manage credentials, health, and webhooks from a single page.",
+      action_label: "View Integrations",
       result_link: "/integrations",
-      result_link_label: "View Health",
-      patterns: ["GenServer", "ETS state", "Circuit breaker pattern"]
-    },
-    %{
-      title: "6. Encrypted Credential Vault",
-      description:
-        "API keys are encrypted with AES-256-GCM before storage. A GenServer resolver decrypts on demand and caches in ETS for performance.",
-      action_label: "View Vault",
-      result_link: "/settings",
-      result_link_label: "View Settings",
-      patterns: ["AES-256-GCM", "GenServer", "ETS cache"]
+      result_link_label: "View Integrations",
+      patterns: ["Circuit breaker", "AES-256-GCM vault", "GenServer", "ETS cache"]
     }
   ]
 
@@ -148,11 +139,7 @@ defmodule SupportDeckWeb.GuidedTourLive do
     end)
 
     status = SupportDeck.Integrations.CircuitBreaker.get_status(:front)
-    "Front circuit breaker state: #{status.state} (tripped after simulated failures)"
-  end
-
-  defp execute_step(5) do
-    "Credential vault uses AES-256-GCM encryption — visit Settings to manage API keys"
+    "Front circuit breaker state: #{status.state} — visit Integrations to manage credentials and health"
   end
 
   @impl true

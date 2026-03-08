@@ -102,6 +102,12 @@
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
+/* Collapsible section headers */
+summary::-webkit-details-marker,
+summary::marker {
+  display: none;
+}
+
 /* This file is for your main application CSS */
 
 /* Driver.js tour popover — daisyUI theme-aware overrides
