@@ -4,6 +4,8 @@ defmodule SupportDeck.Workers.RuleActionWorker do
   alias SupportDeck.Tickets
   alias SupportDeck.Integrations
 
+  require Logger
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"ticket_id" => id, "action_type" => type, "params" => params}}) do
     case Tickets.get_ticket(id) do
@@ -47,6 +49,28 @@ defmodule SupportDeck.Workers.RuleActionWorker do
 
           error ->
             error
+        end
+
+      "front_reply" ->
+        case ticket.front_conversation_id do
+          nil ->
+            Logger.warning("rule_action.front_reply.no_conversation_id", ticket_id: ticket.id)
+            {:cancel, "ticket has no front_conversation_id"}
+
+          conv_id ->
+            body = params["body"] || default_message(ticket)
+            Integrations.Front.Client.reply_to_conversation(conv_id, body)
+        end
+
+      "front_tag" ->
+        case ticket.front_conversation_id do
+          nil ->
+            Logger.warning("rule_action.front_tag.no_conversation_id", ticket_id: ticket.id)
+            {:cancel, "ticket has no front_conversation_id"}
+
+          conv_id ->
+            tag_ids = params["tag_ids"] || []
+            Integrations.Front.Client.tag_conversation(conv_id, tag_ids)
         end
 
       "assign" ->
