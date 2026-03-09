@@ -88,9 +88,9 @@ const TOUR = [
       {
         element: "[data-tour='breaker-cards']",
         popover: {
-          title: "Circuit Breakers",
+          title: "Credentials & Circuit Breakers",
           description:
-            "ETS-backed GenServer breakers for Front, Slack, and Linear. Trip one to simulate failures, then reset it and watch the state recover.",
+            "API keys are encrypted with AES-256-GCM and cached in ETS. Each integration has a GenServer-backed circuit breaker \u2014 trip one to simulate failures, then watch it recover.",
           side: "bottom",
           align: "center",
         },
@@ -98,24 +98,9 @@ const TOUR = [
       {
         element: "[data-tour='webhook-test']",
         popover: {
-          title: "Webhook Test",
+          title: "Simulate Inbound Webhooks",
           description:
-            "Send a JSON payload to any integration\u2019s webhook endpoint. The worker parses it and creates or updates tickets automatically.",
-          side: "top",
-          align: "center",
-        },
-      },
-    ],
-  },
-  {
-    path: "/settings",
-    steps: [
-      {
-        element: "[data-tour='credential-vault']",
-        popover: {
-          title: "Encrypted Vault",
-          description:
-            "API keys are encrypted with AES-256-GCM before storage. A GenServer resolver caches decrypted values in ETS for fast lookups.",
+            "Send test payloads to Front, Slack, or Linear webhook endpoints. The worker parses them and creates or updates tickets, triggering rules along the way.",
           side: "top",
           align: "center",
         },

@@ -15,7 +15,7 @@ defmodule SupportDeckWeb.GuidedTourLive do
     %{
       title: "2. Trigger AI Triage",
       description:
-        "An Oban worker picks up the ticket, calls the AI provider (or simulates classification), and records a triage result with predicted category, severity, and confidence score.",
+        "An Oban worker picks up the ticket, calls OpenAI (or falls back to keyword heuristics), and records a triage result with predicted category, severity, and confidence score.",
       action_label: "Run AI Triage",
       result_link: "/tickets",
       result_link_label: "View Tickets",
@@ -42,8 +42,8 @@ defmodule SupportDeckWeb.GuidedTourLive do
     %{
       title: "5. Integrations & Credential Vault",
       description:
-        "Each integration has a GenServer-backed circuit breaker for fault tolerance. API keys are encrypted with AES-256-GCM, decrypted on demand, and cached in ETS. Manage credentials, health, and webhooks from a single page.",
-      action_label: "View Integrations",
+        "Each integration has a GenServer-backed circuit breaker for fault tolerance. API keys are encrypted with AES-256-GCM, decrypted on demand, and cached in ETS. Test webhooks, manage credentials, and monitor health from the Integrations page.",
+      action_label: "Check Integrations",
       result_link: "/integrations",
       result_link_label: "View Integrations",
       patterns: ["Circuit breaker", "AES-256-GCM vault", "GenServer", "ETS cache"]
@@ -134,12 +134,18 @@ defmodule SupportDeckWeb.GuidedTourLive do
   end
 
   defp execute_step(4) do
-    Enum.each(1..5, fn _ ->
-      SupportDeck.Integrations.CircuitBreaker.call(:front, fn -> {:error, :simulated_failure} end)
-    end)
+    statuses =
+      Enum.map([:front, :slack, :linear], fn name ->
+        status = SupportDeck.Integrations.CircuitBreaker.get_status(name)
+        "#{name}: #{status.state}"
+      end)
 
-    status = SupportDeck.Integrations.CircuitBreaker.get_status(:front)
-    "Front circuit breaker state: #{status.state} — visit Integrations to manage credentials and health"
+    configured =
+      Enum.count([:front, :slack, :linear, :openai], fn name ->
+        SupportDeck.Settings.Resolver.integration_status(name) == :configured
+      end)
+
+    "Circuit breakers: #{Enum.join(statuses, ", ")} — #{configured}/4 integrations configured"
   end
 
   @impl true
