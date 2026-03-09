@@ -54,7 +54,7 @@ defmodule SupportDeckWeb.CoreComponents do
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
-      phx-mounted={JS.transition({"", "", "hidden"}, time: 5000) |> JS.push("lv:clear-flash", value: %{key: @kind})}
+      phx-mounted={JS.hide(transition: {"transition-opacity duration-700", "opacity-100", "opacity-0"}, time: 5000)}
       role="alert"
       class="toast toast-top toast-end z-50"
       {@rest}
