@@ -127,6 +127,5 @@ defmodule SupportDeck.Settings.Resolver do
   defp required_keys_for(:slack), do: [:bot_token, :signing_secret]
   defp required_keys_for(:linear), do: [:api_key, :webhook_secret]
   defp required_keys_for(:openai), do: [:api_key]
-  defp required_keys_for(:anthropic), do: [:api_key]
   defp required_keys_for(_), do: []
 end

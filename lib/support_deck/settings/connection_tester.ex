@@ -90,27 +90,6 @@ defmodule SupportDeck.Settings.ConnectionTester do
     end)
   end
 
-  def test(:anthropic) do
-    with_credential(:anthropic, :api_key, "Anthropic API key", fn api_key ->
-      case Req.get(
-             url: "https://api.anthropic.com/v1/models",
-             headers: [
-               {"x-api-key", api_key},
-               {"anthropic-version", "2023-06-01"}
-             ]
-           ) do
-        {:ok, %{status: 200, body: %{"data" => models}}} ->
-          {:ok, "Connected — #{length(models)} models available"}
-
-        {:ok, %{status: 401}} ->
-          {:error, "Invalid API key — got 401"}
-
-        {:error, reason} ->
-          {:error, "Connection failed: #{inspect(reason)}"}
-      end
-    end)
-  end
-
   defp with_credential(integration, key, label, fun) do
     case Resolver.get(integration, key) do
       nil -> {:error, "#{label} not configured"}

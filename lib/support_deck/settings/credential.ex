@@ -14,7 +14,6 @@ defmodule SupportDeck.Settings.Credential do
     - {:linear, :api_key}
     - {:linear, :webhook_secret}
     - {:openai, :api_key}
-    - {:anthropic, :api_key}
   """
 
   use Ash.Resource,
@@ -30,7 +29,7 @@ defmodule SupportDeck.Settings.Credential do
     uuid_primary_key(:id)
 
     attribute :integration, :atom do
-      constraints(one_of: [:front, :slack, :linear, :openai, :anthropic])
+      constraints(one_of: [:front, :slack, :linear, :openai])
       allow_nil?(false)
       public?(true)
     end

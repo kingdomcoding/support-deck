@@ -11,8 +11,7 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
      [bot_token: "Bot Token", signing_secret: "Signing Secret"]},
     {:linear, "Issue sync and escalation",
      [api_key: "API Key", webhook_secret: "Webhook Secret"]},
-    {:openai, "AI triage and draft responses", [api_key: "API Key"]},
-    {:anthropic, "AI triage and draft responses", [api_key: "API Key"]}
+    {:openai, "AI triage and draft responses", [api_key: "API Key"]}
   ]
 
   @breaker_integrations [:front, :slack, :linear]
