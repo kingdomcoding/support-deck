@@ -2,7 +2,7 @@ defmodule SupportDeck.Workers.AITriageWorker do
   use Oban.Worker, queue: :ai_triage, max_attempts: 3
 
   alias SupportDeck.{Tickets, AI}
-  alias SupportDeck.Integrations.Anthropic
+  alias SupportDeck.Integrations.OpenAI
 
   require Logger
 
@@ -51,13 +51,13 @@ defmodule SupportDeck.Workers.AITriageWorker do
     subject = ticket.subject || ""
     body = ticket.body || ""
 
-    case Anthropic.Client.classify(subject, body) do
+    case OpenAI.Client.classify(subject, body) do
       {:ok, classification} ->
-        Logger.info("ai.triage.anthropic_success", ticket_id: ticket.id)
+        Logger.info("ai.triage.openai_success", ticket_id: ticket.id)
         classification
 
       {:error, reason} ->
-        Logger.warning("ai.triage.anthropic_fallback",
+        Logger.warning("ai.triage.openai_fallback",
           ticket_id: ticket.id,
           reason: inspect(reason)
         )
@@ -100,7 +100,7 @@ defmodule SupportDeck.Workers.AITriageWorker do
       "severity" => severity,
       "is_repetitive" => false,
       "confidence" => 0.6,
-      "reasoning" => "Heuristic classification (Anthropic API not available)"
+      "reasoning" => "Heuristic classification (OpenAI API not available)"
     }
   end
 
