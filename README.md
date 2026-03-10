@@ -1,113 +1,139 @@
 # SupportDeck
 
-A production-grade support engineering platform built with **Ash Framework**, **Phoenix LiveView**, and **Oban** — demonstrating how declarative resource modeling, real-time UI, and robust background processing combine to create sophisticated internal tooling.
+A real-time support operations platform built with Elixir, Phoenix LiveView, and Ash Framework.
 
-## Architecture
+**[Live Demo →](https://supportdeck.josboxoffice.com)**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Phoenix LiveView (Real-time Dashboard)                     │
-│  ┌──────────┬──────────┬──────────┬──────────┬───────────┐  │
-│  │ Tickets  │   SLA    │    AI    │  Rules   │ Settings  │  │
-│  │  Queue   │Dashboard │Dashboard │  Engine  │  & Vault  │  │
-│  └──────────┴──────────┴──────────┴──────────┴───────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│  Ash Domains (Business Logic)                               │
-│  ┌──────────┬──────────┬──────────┬──────────┬───────────┐  │
-│  │ Tickets  │   SLA    │   AI     │Integra-  │ Settings  │  │
-│  │          │          │          │  tions   │           │  │
-│  └──────────┴──────────┴──────────┴──────────┴───────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│  Oban Workers (Background Processing)                       │
-│  ┌──────────┬──────────┬──────────┬──────────┬───────────┐  │
-│  │ Webhook  │   SLA    │    AI    │  Rule    │  Sync     │  │
-│  │Processors│ Notifier │  Triage  │ Actions  │           │  │
-│  └──────────┴──────────┴──────────┴──────────┴───────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│  PostgreSQL (AshPostgres) + Oban Jobs                       │
-└─────────────────────────────────────────────────────────────┘
-```
+## What It Does
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Phoenix 1.8 + LiveView 1.1 |
-| Resource Modeling | Ash 3.x + AshPostgres + AshStateMachine + AshOban |
-| Background Jobs | Oban (webhooks, SLA, AI triage, rules, sync queues) |
-| Database | PostgreSQL 16 |
-| HTTP Client | Req |
-| Integrations | Front, Slack, Linear (with circuit breakers) |
-| Security | AES-256-GCM credential vault, HMAC webhook signatures |
-
-## Key Features
-
-**Ticket Lifecycle** — Declarative state machine (new → triaging → assigned → waiting → escalated → resolved → closed) with automatic SLA tracking and escalation.
-
-**SLA Engine** — Tier×severity SLA policies with real-time countdown, automatic escalation via AshOban scheduled triggers, and breach alerting.
-
-**AI Triage** — Automatic ticket classification (severity, product area, draft response) via pluggable AI pipeline with confidence scoring.
-
-**Automation Rules** — Configurable condition/action rules evaluated on ticket events, with Oban-backed action execution (assign, notify, escalate, create Linear issues).
-
-**Integration Hub** — Front, Slack, and Linear integrations with ETS-backed circuit breakers, idempotent webhook processing, and encrypted credential storage.
-
-**Real-time Dashboard** — 12 LiveView pages with PubSub-driven updates, sidebar badge counts, and a guided tour for reviewers.
+- **Ticket Management** — Ingest tickets from Front, Slack, and Linear webhooks. Track them through a full lifecycle from creation to resolution.
+- **AI Triage** — Automatically classify incoming tickets by category, severity, and suggested response using OpenAI, with keyword fallback when the AI service is unavailable.
+- **SLA Monitoring** — Define response and resolution targets per plan tier and severity. Overdue tickets are flagged and auto-escalated.
+- **Automation Rules** — Route, assign, escalate, or notify based on configurable conditions. Rules execute asynchronously in the background.
+- **Integration Hub** — Encrypted credential vault, per-service health monitoring with circuit breakers, and webhook simulation tools for testing.
+- **Real-time UI** — 11 LiveView pages with instant updates via PubSub. No page reloads, no polling.
 
 ## Quick Start
 
-### With Docker
+### Docker (recommended)
 
 ```bash
 cp .env.example .env
 docker compose up -d
-# App available at http://localhost:4500
+# → http://localhost:4500
 ```
 
 ### Local Development
 
 ```bash
-# Prerequisites: Elixir 1.17+, PostgreSQL 16+
-mix setup
-mix phx.server
-# Visit http://localhost:4500
+# Requires: Elixir 1.18+, PostgreSQL 16+
+mix setup          # deps, db create, migrate, seed
+mix phx.server     # → http://localhost:4500
 ```
 
 ### Running Tests
 
 ```bash
 mix test
-mix test --cover
 ```
+
+## Architecture
+
+SupportDeck is organized into five Ash domains, each owning its resources and business logic. LiveView pages call domain APIs directly. Background work — webhook processing, AI triage, rule execution, SLA checks — runs through Oban workers with dedicated queues. External API calls are protected by per-service circuit breakers.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  LiveView Pages (11)              PubSub (real-time)    │
+├─────────────────────────────────────────────────────────┤
+│  Ash Domains                                            │
+│  Tickets · SLA · AI · Integrations · Settings           │
+├─────────────────────────────────────────────────────────┤
+│  Oban Workers (6 queues)          AshOban Triggers (2)  │
+├─────────────────────────────────────────────────────────┤
+│  PostgreSQL 16 + pgvector                               │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Technical Highlights
+
+### Declarative State Machine
+
+Ticket lifecycle (new → triaging → assigned → waiting → escalated → resolved → closed) is defined declaratively via AshStateMachine. Invalid transitions are rejected at the resource level — no defensive coding needed in controllers or LiveViews.
+
+### Circuit Breaker Pattern
+
+Each external integration (Front, Slack, Linear) has an ETS-backed GenServer circuit breaker. After 5 consecutive failures, the breaker trips and blocks calls for 30 seconds. Recovery is automatic — the next call after cooldown tests the connection.
+
+### Encrypted Credential Vault
+
+API keys are AES-256-GCM encrypted at rest. A GenServer loads and decrypts credentials into an ETS table on boot for fast reads. The UI lets you save, test, and delete credentials with the cache staying in sync.
+
+### Idempotent Webhook Processing
+
+Every inbound webhook is stored with a unique constraint (source + external_id) before processing. Duplicate deliveries are safely rejected. Each source (Front, Slack, Linear) has its own HMAC signature verification.
+
+### Background Job Architecture
+
+Six Oban queues with dedicated concurrency limits handle webhook processing, AI classification, rule execution, SLA monitoring, integration sync, and maintenance. Two AshOban scheduled triggers run directly on the Ticket resource: SLA breach checks (every minute) and auto-close of resolved tickets (hourly).
+
+### Automation Rules Engine
+
+A configurable rule engine evaluates conditions against ticket fields (severity, tier, product area, source) and dispatches actions (assign, escalate, notify via Slack, create Linear issues, reply via Front). Rules are stored as JSON and executed asynchronously through Oban.
 
 ## Project Structure
 
 ```
 lib/
 ├── support_deck/
-│   ├── tickets/          # Ticket, TicketActivity, Rule resources + RuleEngine
-│   ├── sla/              # SLA Policy resource + defaults
-│   ├── ai/               # TriageResult, KnowledgeDoc, Classification
-│   ├── integrations/     # CircuitBreaker, Front/Slack/Linear clients
-│   ├── settings/         # Credential resource, Vault, Resolver
-│   ├── workers/          # Oban workers (webhooks, SLA, AI, rules)
-│   ├── tickets.ex        # Tickets domain
-│   ├── sla_domain.ex     # SLA domain
-│   ├── ai_domain.ex      # AI domain
-│   ├── integrations_domain.ex
-│   └── settings_domain.ex
+│   ├── tickets/           # Ticket, TicketActivity, Rule + RuleEngine
+│   ├── sla/               # SLA policies and deadline defaults
+│   ├── ai/                # Triage results, knowledge docs, classification
+│   ├── integrations/      # Circuit breaker, Front/Slack/Linear/OpenAI clients
+│   ├── settings/          # Credential vault, resolver, connection tester
+│   └── workers/           # 6 Oban workers (webhooks, AI, rules, SLA)
 ├── support_deck_web/
-│   ├── live/             # 12 LiveView pages
-│   ├── controllers/      # Webhook + Health controllers
-│   ├── plugs/            # Raw body caching, signature verification
-│   └── components/       # Layouts with sidebar navigation
+│   ├── live/              # 11 LiveView pages
+│   ├── controllers/       # Webhook ingestion, health check
+│   ├── plugs/             # Raw body cache, signature verification
+│   └── components/        # Shared UI components, sidebar layout
 ```
 
-## Design Decisions
+## Tech Stack
 
-- **Ash as the core** — All business logic lives in declarative Ash resources and domains, providing a consistent API layer with built-in validation, authorization hooks, and code generation.
-- **AshStateMachine for ticket lifecycle** — State transitions are declarative and enforced at the resource level, making invalid state changes impossible.
-- **AshOban for scheduled work** — SLA checks and auto-close are defined directly on the Ticket resource, keeping scheduling logic co-located with the resource it operates on.
-- **ETS-backed circuit breakers** — External API calls go through a GenServer-based circuit breaker to prevent cascade failures, with per-integration isolation.
-- **Encrypted credential vault** — Integration credentials are AES-256-GCM encrypted at rest with an ETS-cached resolver for fast lookups.
-- **Idempotent webhook processing** — Every webhook event is stored with a unique constraint before processing, preventing duplicate handling.
+| Layer | Technology |
+|---|---|
+| Language | Elixir 1.18, Erlang/OTP 27 |
+| Web | Phoenix 1.8, LiveView 1.1 |
+| Data | Ash 3.x, AshPostgres, AshStateMachine, AshOban |
+| Database | PostgreSQL 16 with pgvector |
+| Jobs | Oban (6 queues, 2 scheduled triggers) |
+| AI | OpenAI gpt-4o-mini with heuristic fallback |
+| Integrations | Front, Slack, Linear |
+| HTTP | Req |
+| UI | Tailwind CSS 4, daisyUI 5 |
+| Deployment | Docker multi-stage build |
+
+## Environment Variables
+
+| Variable | Purpose |
+|---|---|
+| `SECRET_KEY_BASE` | Phoenix session encryption |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `PHX_HOST` | Public hostname |
+| `CREDENTIAL_VAULT_KEY` | Optional separate vault key (defaults to SECRET_KEY_BASE) |
+
+Integration credentials (Front, Slack, Linear, OpenAI) are managed through the in-app credential vault on the Integrations page — no environment variables needed.
+
+## Pages
+
+| Page | Description |
+|---|---|
+| Dashboard | Live overview of queue, SLA compliance, triage activity |
+| Guided Tour | Interactive walkthrough that creates tickets and triggers features |
+| Tickets | Searchable ticket queue with state management |
+| Ticket Detail | Full ticket view with state transitions, AI triage, activity log |
+| SLA Monitor | Response/resolution deadline tracking with breach alerts |
+| SLA Policies | Editable policy grid by tier and severity |
+| Automation Rules | Create/edit rules with condition builder and action config |
+| Knowledge Base | Documentation and FAQs used for AI triage context |
+| Integrations | Credential vault, circuit breaker controls, webhook simulator |

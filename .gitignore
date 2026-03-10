@@ -35,3 +35,6 @@ support_deck-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Environment and secrets
+.env
+
