@@ -33,6 +33,7 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
      |> load_credentials()
      |> load_statuses()
      |> load_rules_and_linear_ticket()
+     |> load_webhook_events()
      |> compute_breaker_display()}
   end
 
@@ -183,7 +184,8 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
     {:noreply,
      socket
      |> update(:webhook_results, &Map.put(&1, source_atom, result))
-     |> load_rules_and_linear_ticket()}
+     |> load_rules_and_linear_ticket()
+     |> load_webhook_events()}
   end
 
   @impl true
@@ -323,6 +325,16 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
     |> assign(:has_rules, has_rules)
     |> assign(:linked_linear_ticket, linked_ticket)
     |> assign(:platform_tools, build_platform_tools(linked_ticket))
+  end
+
+  defp load_webhook_events(socket) do
+    events =
+      case SupportDeck.IntegrationsDomain.list_recent_events() do
+        {:ok, e} -> e
+        _ -> []
+      end
+
+    assign(socket, :webhook_events, events)
   end
 
   defp load_credentials(socket) do
@@ -699,6 +711,46 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
               </button>
             </form>
           </div>
+        </div>
+      </details>
+
+      <%!-- Recent Webhook Events --%>
+      <details open class="mt-10 open:[&_summary_svg]:rotate-90">
+        <summary class="text-sm font-semibold text-base-content/60 uppercase tracking-widest mb-4 cursor-pointer select-none list-none flex items-center gap-2 hover:text-base-content/80">
+          <svg class="w-3.5 h-3.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7" /></svg>
+          Recent Webhook Events
+        </summary>
+        <div :if={@webhook_events == []} class="text-center py-8 bg-base-100 rounded-lg border border-base-300">
+          <p class="text-base-content/60 text-sm">No webhook events recorded yet.</p>
+        </div>
+        <div :if={@webhook_events != []} class="bg-base-100 rounded-lg border border-base-300 overflow-hidden">
+          <table class="min-w-full divide-y divide-base-300">
+            <thead class="bg-base-200">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">Source</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">Event Type</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">Time</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-base-300">
+              <tr :for={event <- @webhook_events} class="hover:bg-base-200">
+                <td class="px-4 py-3 text-sm font-medium text-base-content capitalize">{event.source}</td>
+                <td class="px-4 py-3 text-sm text-base-content/60">{event.event_type}</td>
+                <td class="px-4 py-3">
+                  <span class={[
+                    "px-2 py-0.5 text-xs rounded-full font-medium",
+                    if(event.processed_at, do: "bg-success/15 text-success", else: "bg-warning/15 text-warning")
+                  ]}>
+                    {if event.processed_at, do: "Processed", else: "Pending"}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-base-content/50">
+                  {Calendar.strftime(event.inserted_at, "%b %d, %H:%M")}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </details>
 
