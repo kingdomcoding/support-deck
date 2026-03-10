@@ -1,7 +1,7 @@
 alias SupportDeck.{Tickets, AI}
 
 # ── Clean up existing seed data ──────────────────────────────────────
-SupportDeck.Repo.query!("TRUNCATE ticket_activities, triage_results, webhook_events, tickets, sla_policies, rules, knowledge_docs CASCADE")
+SupportDeck.Repo.query!("TRUNCATE ticket_activities, ai_triage_results, webhook_events, tickets, sla_policies, rules, knowledge_docs CASCADE")
 IO.puts("Cleaned existing seed data")
 
 # ── SLA Policies ──────────────────────────────────────────────────────
