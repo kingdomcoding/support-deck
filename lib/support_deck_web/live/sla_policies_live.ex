@@ -164,8 +164,7 @@ defmodule SupportDeckWeb.SLAPoliciesLive do
       </div>
       <.page_header
         title="SLA Policies"
-        description="Response and resolution time targets by subscription tier and severity. Grid-based inline editing."
-        patterns={["Ash resource CRUD", "Upsert with identity"]}
+        description="Set response and resolution time targets by tier and severity."
       />
 
       <div class="bg-base-100 rounded-lg border border-base-300 overflow-hidden">

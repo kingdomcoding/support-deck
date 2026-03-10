@@ -51,16 +51,27 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
     else
       results =
         Enum.map(non_empty, fn {key_name, value} ->
-          SupportDeck.Settings.store_credential(%{
-            integration: name,
-            key_name: String.to_existing_atom(key_name),
-            plaintext_value: value
-          })
+          key_atom = String.to_existing_atom(key_name)
+
+          result =
+            SupportDeck.Settings.store_credential(%{
+              integration: name,
+              key_name: key_atom,
+              plaintext_value: value
+            })
+
+          if match?({:ok, _}, result), do: Resolver.reload_credential(name, key_atom)
+          result
         end)
 
       case Enum.find(results, fn r -> match?({:error, _}, r) end) do
         nil ->
-          {:noreply, socket |> put_flash(:info, "Credentials saved") |> load_credentials()}
+          {:noreply,
+           socket
+           |> put_flash(:info, "Credentials saved")
+           |> load_credentials()
+           |> load_statuses()
+           |> compute_breaker_display()}
 
         {:error, err} ->
           {:noreply,
@@ -99,7 +110,14 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
       credential ->
         case SupportDeck.Settings.delete_credential(credential) do
           :ok ->
-            {:noreply, socket |> put_flash(:info, "Credential deleted") |> load_credentials()}
+            Resolver.invalidate_credential(credential.integration, credential.key_name)
+
+            {:noreply,
+             socket
+             |> put_flash(:info, "Credential deleted")
+             |> load_credentials()
+             |> load_statuses()
+             |> compute_breaker_display()}
 
           {:error, err} ->
             {:noreply,
@@ -504,7 +522,6 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
       <.page_header
         title="Integrations"
         description="Manage credentials, monitor connection health, and test webhooks."
-        patterns={["AES-256-GCM vault", "Circuit breaker", "ETS cache"]}
       />
 
       <details open data-tour="breaker-cards" class="open:[&_summary_svg]:rotate-90">

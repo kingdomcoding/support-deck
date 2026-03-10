@@ -15,6 +15,8 @@ defmodule SupportDeck.Release do
   end
 
   def seed do
+    migrate()
+    Application.ensure_all_started(@app)
     seed_file = Path.join(:code.priv_dir(@app) |> to_string(), "repo/seeds.exs")
     Code.eval_file(seed_file)
   end

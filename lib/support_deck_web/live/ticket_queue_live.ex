@@ -61,12 +61,16 @@ defmodule SupportDeckWeb.TicketQueueLive do
   def handle_event("triage_all", _, socket) do
     new_tickets = Enum.filter(socket.assigns.tickets, &(&1.state == :new))
 
-    enqueued =
-      Enum.count(new_tickets, fn ticket ->
-        match?({:ok, _}, SupportDeck.Workers.AITriageWorker.new(%{ticket_id: ticket.id}) |> Oban.insert())
-      end)
+    if new_tickets == [] do
+      {:noreply, put_flash(socket, :info, "No new tickets to triage")}
+    else
+      enqueued =
+        Enum.count(new_tickets, fn ticket ->
+          match?({:ok, _}, SupportDeck.Workers.AITriageWorker.new(%{ticket_id: ticket.id}) |> Oban.insert())
+        end)
 
-    {:noreply, put_flash(socket, :info, "AI triage queued for #{enqueued} ticket(s)")}
+      {:noreply, put_flash(socket, :info, "AI triage queued for #{enqueued} ticket(s)")}
+    end
   end
 
   def handle_event("create_ticket", params, socket) do
@@ -181,8 +185,7 @@ defmodule SupportDeckWeb.TicketQueueLive do
     <div class="max-w-6xl mx-auto px-6 py-6">
       <.page_header
         title="Tickets"
-        description="Active support tickets with real-time state machine transitions and search."
-        patterns={["AshStateMachine", "PubSub", "Named read actions"]}
+        description="View, search, and manage active support tickets."
       >
         <:actions>
           <button

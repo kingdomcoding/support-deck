@@ -6,47 +6,42 @@ defmodule SupportDeckWeb.GuidedTourLive do
     %{
       title: "1. Create a Support Ticket",
       description:
-        "Watch how Ash resources, AshStateMachine, and PubSub work together. A ticket is created with a state machine lifecycle that tracks it from 'new' through 'resolved'.",
+        "Create a new ticket and watch it appear in the queue in real time. Tickets track their full lifecycle from creation through resolution.",
       action_label: "Create Ticket",
       result_link: "/tickets",
-      result_link_label: "View in Queue",
-      patterns: ["Ash.Resource", "AshStateMachine", "create action", "PubSub broadcast"]
+      result_link_label: "View in Queue"
     },
     %{
       title: "2. Trigger AI Triage",
       description:
-        "An Oban worker picks up the ticket, calls OpenAI (or falls back to keyword heuristics), and records a triage result with predicted category, severity, and confidence score.",
+        "Run AI classification on a ticket to predict its category, severity, and confidence score. Falls back to keyword matching if the AI service is unavailable.",
       action_label: "Run AI Triage",
       result_link: "/tickets",
-      result_link_label: "View Tickets",
-      patterns: ["Oban worker", "Prompt-backed action", "AI classification"]
+      result_link_label: "View Tickets"
     },
     %{
       title: "3. Evaluate Automation Rules",
       description:
-        "The rule engine checks all enabled rules against the ticket. Matching rules dispatch Oban jobs to execute actions like auto-assign, escalate, or notify.",
+        "Check all enabled rules against the ticket. Matching rules automatically execute actions like assigning, escalating, or sending notifications.",
       action_label: "Check Rules",
       result_link: "/rules",
-      result_link_label: "View Rules",
-      patterns: ["Rule engine", "Condition matching", "Oban dispatch"]
+      result_link_label: "View Rules"
     },
     %{
       title: "4. SLA Deadline Tracking",
       description:
-        "AshOban scheduled triggers periodically check for tickets approaching or past their SLA deadlines. Breaching tickets are flagged and can trigger escalation rules.",
+        "Monitor response and resolution deadlines. Tickets approaching or past their SLA targets are flagged and can trigger automatic escalation.",
       action_label: "Check SLA Status",
       result_link: "/sla",
-      result_link_label: "View SLA Dashboard",
-      patterns: ["AshOban triggers", "SLA Buddy pattern", "Scheduled workers"]
+      result_link_label: "View SLA Dashboard"
     },
     %{
-      title: "5. Integrations & Credential Vault",
+      title: "5. Integrations & Credentials",
       description:
-        "Each integration has a GenServer-backed circuit breaker for fault tolerance. API keys are encrypted with AES-256-GCM, decrypted on demand, and cached in ETS. Test webhooks, manage credentials, and monitor health from the Integrations page.",
+        "Connect to external services like Front, Slack, and Linear. API keys are encrypted at rest. Each integration has health monitoring and automatic recovery from failures.",
       action_label: "Check Integrations",
       result_link: "/integrations",
-      result_link_label: "View Integrations",
-      patterns: ["Circuit breaker", "AES-256-GCM vault", "GenServer", "ETS cache"]
+      result_link_label: "View Integrations"
     }
   ]
 
@@ -137,7 +132,16 @@ defmodule SupportDeckWeb.GuidedTourLive do
     statuses =
       Enum.map([:front, :slack, :linear], fn name ->
         status = SupportDeck.Integrations.CircuitBreaker.get_status(name)
-        "#{name}: #{status.state}"
+
+        label =
+          case status.state do
+            :closed -> "healthy"
+            :open -> "failing"
+            :half_open -> "recovering"
+            _ -> "unknown"
+          end
+
+        "#{name}: #{label}"
       end)
 
     configured =
@@ -145,7 +149,7 @@ defmodule SupportDeckWeb.GuidedTourLive do
         SupportDeck.Settings.Resolver.integration_status(name) == :configured
       end)
 
-    "Circuit breakers: #{Enum.join(statuses, ", ")} — #{configured}/4 integrations configured"
+    "#{configured}/4 integrations configured — #{Enum.join(statuses, ", ")}"
   end
 
   @impl true
@@ -157,8 +161,7 @@ defmodule SupportDeckWeb.GuidedTourLive do
     <div class="max-w-4xl mx-auto px-6 py-6">
       <.page_header
         title="Guided Tour"
-        description="Interactive walkthrough of SupportDeck's key features and Ash patterns."
-        patterns={["Interactive walkthrough", "Domain API calls"]}
+        description="Interactive walkthrough of SupportDeck's key features."
       />
 
       <div class="flex gap-2 mb-6">
@@ -183,15 +186,6 @@ defmodule SupportDeckWeb.GuidedTourLive do
           <h2 class="text-lg font-semibold text-base-content">{@step.title}</h2>
         </div>
         <p class="text-sm text-base-content/70 mb-4 leading-relaxed">{@step.description}</p>
-
-        <div class="flex flex-wrap gap-1 mb-4">
-          <span
-            :for={p <- @step.patterns}
-            class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-base-content/5 text-base-content/40"
-          >
-            {p}
-          </span>
-        </div>
 
         <div class="flex items-center gap-3">
           <button

@@ -46,8 +46,7 @@ defmodule SupportDeckWeb.SLADashboardLive do
     <div class="max-w-6xl mx-auto px-6 py-6">
       <.page_header
         title="SLA Monitor"
-        description="Tracks response and resolution deadlines. Breaching tickets are escalated via AshOban triggers."
-        patterns={["AshOban triggers", "SLA Buddy pattern", "Named read actions"]}
+        description="Track response and resolution deadlines. Overdue tickets are auto-escalated."
       >
         <:actions>
           <.link

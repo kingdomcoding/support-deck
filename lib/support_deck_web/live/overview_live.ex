@@ -87,8 +87,7 @@ defmodule SupportDeckWeb.OverviewLive do
     <div class="max-w-6xl mx-auto px-6 py-6">
       <.page_header
         title="Dashboard"
-        description="Real-time overview of support operations, SLA compliance, and AI triage performance."
-        patterns={["Phoenix LiveView", "PubSub real-time", "Ash Domain queries"]}
+        description="Live overview of your support queue, SLA compliance, and triage activity."
       >
         <:actions>
           <.link

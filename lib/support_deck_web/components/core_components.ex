@@ -54,7 +54,8 @@ defmodule SupportDeckWeb.CoreComponents do
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
-      phx-mounted={JS.transition({"transition-opacity duration-700", "opacity-100", "opacity-0"}, time: 5000) |> JS.push("lv:clear-flash", value: %{key: @kind})}
+      phx-hook="FlashHook"
+      data-kind={@kind}
       role="alert"
       class="toast toast-top toast-end z-50"
       {@rest}
@@ -493,25 +494,6 @@ defmodule SupportDeckWeb.CoreComponents do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
 
-  attr :patterns, :list, required: true
-  attr :description, :string, default: nil
-
-  def tech_banner(assigns) do
-    ~H"""
-    <div class="mb-6 px-4 py-3 bg-base-200 border border-base-300 rounded-lg">
-      <div :if={@description} class="text-sm text-base-content/60 mb-2">{@description}</div>
-      <div class="flex flex-wrap gap-1.5">
-        <span
-          :for={pattern <- @patterns}
-          class="px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary border border-primary/20"
-        >
-          {pattern}
-        </span>
-      </div>
-    </div>
-    """
-  end
-
   attr :state, :atom, required: true
 
   def state_pill(assigns) do
@@ -604,7 +586,6 @@ defmodule SupportDeckWeb.CoreComponents do
 
   attr :title, :string, required: true
   attr :description, :string, required: true
-  attr :patterns, :list, default: []
   slot :actions
 
   def page_header(assigns) do
@@ -618,14 +599,6 @@ defmodule SupportDeckWeb.CoreComponents do
         <div :if={@actions != []} class="flex items-center gap-2 flex-shrink-0">
           {render_slot(@actions)}
         </div>
-      </div>
-      <div :if={@patterns != []} class="mt-2 flex flex-wrap gap-1">
-        <span
-          :for={pattern <- @patterns}
-          class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-base-content/5 text-base-content/40"
-        >
-          {pattern}
-        </span>
       </div>
     </div>
     """

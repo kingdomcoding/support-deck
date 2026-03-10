@@ -168,8 +168,7 @@ defmodule SupportDeckWeb.KnowledgeLive do
     <div class="max-w-6xl mx-auto px-6 py-6">
       <.page_header
         title="Knowledge Base"
-        description="Support documentation, resolved ticket patterns, and FAQs for AI context."
-        patterns={["Ash resources", "Content types"]}
+        description="Documentation, resolved patterns, and FAQs used by AI triage."
       >
         <:actions>
           <button

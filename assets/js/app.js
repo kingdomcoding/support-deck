@@ -25,11 +25,24 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import TourHook from "./tour_hook"
 
+const FlashHook = {
+  mounted() {
+    this.timer = setTimeout(() => {
+      this.el.style.transition = "opacity 500ms"
+      this.el.style.opacity = "0"
+      setTimeout(() => this.el.click(), 500)
+    }, 5000)
+  },
+  destroyed() {
+    if (this.timer) clearTimeout(this.timer)
+  },
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: { TourHook },
+  hooks: { TourHook, FlashHook },
 })
 
 // Show progress bar on live navigation and form submits

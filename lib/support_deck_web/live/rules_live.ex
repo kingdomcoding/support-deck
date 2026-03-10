@@ -278,8 +278,7 @@ defmodule SupportDeckWeb.RulesLive do
     <div class="max-w-6xl mx-auto px-6 py-6">
       <.page_header
         title="Automation Rules"
-        description="Event-driven rules that match ticket conditions and dispatch actions via Oban workers."
-        patterns={["Rule engine", "Condition matching", "Ash CRUD"]}
+        description="Automate ticket routing, escalation, and notifications based on conditions."
       >
         <:actions>
           <.link
