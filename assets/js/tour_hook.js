@@ -137,6 +137,9 @@ const TourHook = {
     this.navigating = false
     this.waitingFor = null
     this.skipTimer = null
+    this.currentPageIndex = 0
+    this.currentLocalStep = 0
+    this.resumeBanner = null
 
     const btn = this.el.querySelector("#start-tour-btn")
     if (btn) btn.addEventListener("click", () => this.runPage(0, 0))
@@ -152,7 +155,9 @@ const TourHook = {
     })
 
     const state = this.loadState()
-    if (state && state.active) {
+    if (state && state.interrupted) {
+      this.showResumeBanner(state)
+    } else if (state && state.active) {
       setTimeout(() => this.runPage(state.pageIndex, state.stepIndex), 300)
     } else if (window.location.search.includes("tour=1")) {
       setTimeout(() => this.runPage(0, 0), 500)
@@ -162,8 +167,11 @@ const TourHook = {
   },
 
   runPage(pageIndex, localStep) {
+    this.removeResumeBanner()
     const page = TOUR[pageIndex]
     if (!page) return this.finish()
+
+    this.currentPageIndex = pageIndex
 
     if (window.location.pathname !== page.path) {
       this.saveState({ pageIndex, stepIndex: localStep, active: true })
@@ -204,6 +212,7 @@ const TourHook = {
       onHighlightStarted: (_element, step) => {
         this.clearSkipTimer()
         this.waitingFor = null
+        this.currentLocalStep = this.driverInstance.getActiveIndex()
 
         requestAnimationFrame(() => {
           const popover = document.querySelector(".driver-popover")
@@ -262,6 +271,40 @@ const TourHook = {
     this.driverInstance.drive(safeLocal)
   },
 
+  showResumeBanner(state) {
+    this.removeResumeBanner()
+    const offset = globalOffset(state.pageIndex) + state.stepIndex + 1
+
+    const banner = document.createElement("div")
+    banner.className = "tour-resume-banner"
+    banner.innerHTML =
+      `<span>Tour paused \u2014 step ${offset} of ${TOTAL_STEPS}</span>` +
+      `<div class="tour-resume-actions">` +
+      `<button class="tour-resume-continue">Continue</button>` +
+      `<button class="tour-resume-stop">Stop Tour</button>` +
+      `</div>`
+
+    banner.querySelector(".tour-resume-continue").addEventListener("click", () => {
+      this.removeResumeBanner()
+      this.runPage(state.pageIndex, state.stepIndex)
+    })
+
+    banner.querySelector(".tour-resume-stop").addEventListener("click", () => {
+      this.removeResumeBanner()
+      this.finish()
+    })
+
+    document.body.appendChild(banner)
+    this.resumeBanner = banner
+  },
+
+  removeResumeBanner() {
+    if (this.resumeBanner) {
+      this.resumeBanner.remove()
+      this.resumeBanner = null
+    }
+  },
+
   startSkipTimer() {
     this.skipTimer = setTimeout(() => {
       const footer = document.querySelector(".driver-popover-footer")
@@ -286,11 +329,8 @@ const TourHook = {
     if (existing) existing.remove()
   },
 
-  saveState({ pageIndex, stepIndex, active }) {
-    sessionStorage.setItem(
-      "tour_state",
-      JSON.stringify({ pageIndex, stepIndex, active }),
-    )
+  saveState(state) {
+    sessionStorage.setItem("tour_state", JSON.stringify(state))
   },
 
   loadState() {
@@ -314,18 +354,33 @@ const TourHook = {
   finish() {
     this.clearSkipTimer()
     this.clearState()
+    this.removeResumeBanner()
     localStorage.setItem("supportdeck_toured", "true")
   },
 
   destroyed() {
     this.clearSkipTimer()
+
+    if (this.navigating) {
+      if (this.driverInstance) {
+        this.driverInstance.destroy()
+        this.driverInstance = null
+      }
+      return
+    }
+
     if (this.driverInstance) {
+      const step = this.driverInstance.getActiveIndex() || 0
+      this.saveState({
+        pageIndex: this.currentPageIndex,
+        stepIndex: step,
+        interrupted: true,
+      })
       this.driverInstance.destroy()
       this.driverInstance = null
     }
-    if (!this.navigating) {
-      this.clearState()
-    }
+
+    this.removeResumeBanner()
   },
 }
 
