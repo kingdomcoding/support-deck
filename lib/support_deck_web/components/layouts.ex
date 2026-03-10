@@ -69,6 +69,14 @@ defmodule SupportDeckWeb.Layouts do
               tour="rules"
             />
             <.nav_item
+              path={~p"/ai"}
+              current={assigns[:current_path]}
+              icon="hero-sparkles"
+              label="AI Triage"
+              badge={assigns[:ai_count]}
+              badge_variant="neutral"
+            />
+            <.nav_item
               path={~p"/knowledge"}
               current={assigns[:current_path]}
               icon="hero-book-open"
