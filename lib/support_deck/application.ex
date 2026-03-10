@@ -24,6 +24,7 @@ defmodule SupportDeck.Application do
       Supervisor.child_spec({SupportDeck.Integrations.CircuitBreaker, name: :linear},
         id: :cb_linear
       ),
+      {Task, &trip_linear_breaker_for_demo/0},
       SupportDeckWeb.Endpoint
     ]
 
@@ -35,5 +36,13 @@ defmodule SupportDeck.Application do
   def config_change(changed, _new, removed) do
     SupportDeckWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp trip_linear_breaker_for_demo do
+    for _ <- 1..5 do
+      SupportDeck.Integrations.CircuitBreaker.call(:linear, fn ->
+        {:error, :simulated_failure}
+      end)
+    end
   end
 end
