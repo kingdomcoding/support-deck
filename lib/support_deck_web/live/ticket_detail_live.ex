@@ -38,7 +38,8 @@ defmodule SupportDeckWeb.TicketDetailLive do
          |> assign(:back_label, back_label)
          |> assign(:ticket, ticket)
          |> assign(:activities, activities)
-         |> assign(:triage_results, triage_results)}
+         |> assign(:triage_results, triage_results)
+         |> assign(:editing_draft, false)}
 
       {:error, _} ->
         {:ok,
@@ -91,6 +92,38 @@ defmodule SupportDeckWeb.TicketDetailLive do
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to queue triage")}
     end
+  end
+
+  def handle_event("approve_draft", _, socket) do
+    ticket = socket.assigns.ticket
+    record_draft_feedback(socket, true, true)
+    SupportDeck.Tickets.log_activity(ticket.id, "draft_approved", "agent", "AI draft response approved and sent")
+    {:ok, updated} = SupportDeck.Tickets.clear_draft(ticket, %{ai_draft_response: nil})
+    {:noreply, socket |> assign(:ticket, updated) |> reload_activities() |> put_flash(:info, "Draft approved and sent")}
+  end
+
+  def handle_event("edit_draft", _, socket) do
+    {:noreply, assign(socket, :editing_draft, true)}
+  end
+
+  def handle_event("cancel_edit_draft", _, socket) do
+    {:noreply, assign(socket, :editing_draft, false)}
+  end
+
+  def handle_event("save_edited_draft", %{"draft" => _draft}, socket) do
+    ticket = socket.assigns.ticket
+    record_draft_feedback(socket, true, true)
+    SupportDeck.Tickets.log_activity(ticket.id, "draft_edited", "agent", "AI draft edited and sent")
+    {:ok, updated} = SupportDeck.Tickets.clear_draft(ticket, %{ai_draft_response: nil})
+    {:noreply, socket |> assign(:ticket, updated) |> assign(:editing_draft, false) |> reload_activities() |> put_flash(:info, "Edited draft sent")}
+  end
+
+  def handle_event("discard_draft", _, socket) do
+    ticket = socket.assigns.ticket
+    record_draft_feedback(socket, false, false)
+    SupportDeck.Tickets.log_activity(ticket.id, "draft_discarded", "agent", "AI draft response discarded")
+    {:ok, updated} = SupportDeck.Tickets.clear_draft(ticket, %{ai_draft_response: nil})
+    {:noreply, socket |> assign(:ticket, updated) |> reload_activities() |> put_flash(:info, "Draft discarded")}
   end
 
   @impl true
@@ -152,6 +185,54 @@ defmodule SupportDeckWeb.TicketDetailLive do
         <div class="lg:col-span-2 space-y-4">
           <div :if={@ticket.body} class="bg-base-100 rounded-lg border border-base-300 p-4">
             <p class="text-sm text-base-content/80 whitespace-pre-wrap">{@ticket.body}</p>
+          </div>
+
+          <div :if={@ticket.ai_draft_response} class="bg-base-100 rounded-lg border border-info/30 p-4">
+            <h3 class="text-sm font-semibold text-info mb-2 flex items-center gap-1.5">
+              <.icon name="hero-sparkles" class="size-3.5" /> AI Draft Response
+            </h3>
+            <div :if={!@editing_draft}>
+              <p class="text-sm text-base-content/80 whitespace-pre-wrap">{@ticket.ai_draft_response}</p>
+              <div class="flex gap-2 mt-3">
+                <button
+                  phx-click="approve_draft"
+                  phx-disable-with="Sending..."
+                  class="px-3 py-1 text-xs bg-success/15 text-success rounded-lg border border-success/30 hover:bg-success/25"
+                >
+                  Approve & Send
+                </button>
+                <button
+                  phx-click="edit_draft"
+                  class="px-3 py-1 text-xs bg-base-200 text-base-content/60 rounded-lg border border-base-300 hover:bg-base-300"
+                >
+                  Edit
+                </button>
+                <button
+                  phx-click="discard_draft"
+                  data-confirm="Discard this AI-generated draft?"
+                  class="px-3 py-1 text-xs bg-error/15 text-error rounded-lg border border-error/30 hover:bg-error/25"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+            <div :if={@editing_draft}>
+              <form phx-submit="save_edited_draft">
+                <textarea
+                  name="draft"
+                  rows="6"
+                  class="w-full px-3 py-2 border border-base-300 rounded-lg text-sm bg-base-100"
+                >{@ticket.ai_draft_response}</textarea>
+                <div class="flex gap-2 mt-2">
+                  <button type="submit" class="px-3 py-1 text-xs bg-success/15 text-success rounded-lg border border-success/30 hover:bg-success/25">
+                    Approve & Send
+                  </button>
+                  <button type="button" phx-click="cancel_edit_draft" class="px-3 py-1 text-xs bg-base-200 text-base-content/60 rounded-lg border border-base-300 hover:bg-base-300">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
 
           <div class="bg-base-100 rounded-lg border border-base-300 p-4">
@@ -227,6 +308,10 @@ defmodule SupportDeckWeb.TicketDetailLive do
                   {if result.confidence, do: "#{Float.round(result.confidence * 100, 1)}%", else: "—"}
                 </span>
               </div>
+              <div :if={result.draft_response} class="mt-2 pt-2 border-t border-base-300">
+                <p class="text-[10px] text-info font-semibold uppercase tracking-wide mb-1">Draft</p>
+                <p class="text-xs text-base-content/70 line-clamp-3">{result.draft_response}</p>
+              </div>
             </div>
           </div>
 
@@ -251,6 +336,23 @@ defmodule SupportDeckWeb.TicketDetailLive do
       </div>
     </div>
     """
+  end
+
+  defp record_draft_feedback(socket, accepted, used) do
+    case socket.assigns.triage_results do
+      [latest | _] ->
+        SupportDeck.AI.record_feedback(latest, %{human_accepted: accepted, response_used: used})
+      _ -> :ok
+    end
+  end
+
+  defp reload_activities(socket) do
+    activities =
+      case SupportDeck.Tickets.list_activities_for_ticket(socket.assigns.ticket.id) do
+        {:ok, a} -> a
+        _ -> socket.assigns.activities
+      end
+    assign(socket, :activities, activities)
   end
 
   defp available_transitions(:new), do: ["begin_triage", "assign", "escalate", "close"]
