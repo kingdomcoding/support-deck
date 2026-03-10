@@ -15,6 +15,7 @@ defmodule SupportDeck.Tickets do
       define(:close_ticket, action: :close)
 
       define(:apply_ai_results, action: :apply_ai_results)
+      define(:clear_draft, action: :clear_draft)
       define(:link_linear_issue, action: :link_linear_issue, args: [:linear_issue_id])
 
       define(:list_open_tickets, action: :open_tickets)

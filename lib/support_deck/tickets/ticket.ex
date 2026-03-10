@@ -357,6 +357,11 @@ defmodule SupportDeck.Tickets.Ticket do
       end)
     end
 
+    update :clear_draft do
+      require_atomic?(false)
+      accept([:ai_draft_response])
+    end
+
     update :link_linear_issue do
       require_atomic?(false)
       accept([:linear_issue_id])

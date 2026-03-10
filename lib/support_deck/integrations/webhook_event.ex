@@ -44,5 +44,9 @@ defmodule SupportDeck.Integrations.WebhookEvent do
       accept([])
       change(set_attribute(:processed_at, &DateTime.utc_now/0))
     end
+
+    read :recent_events do
+      prepare build(sort: [inserted_at: :desc], limit: 10)
+    end
   end
 end

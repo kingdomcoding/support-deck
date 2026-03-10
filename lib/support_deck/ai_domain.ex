@@ -7,6 +7,7 @@ defmodule SupportDeck.AI do
       define(:record_feedback, action: :record_human_feedback)
       define(:list_triage_for_ticket, action: :for_ticket, args: [:ticket_id])
       define(:list_recent_triage, action: :recent, args: [:since])
+      define(:list_all_triage, action: :all_results)
     end
 
     resource SupportDeck.AI.KnowledgeDoc do

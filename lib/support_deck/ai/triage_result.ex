@@ -60,5 +60,9 @@ defmodule SupportDeck.AI.TriageResult do
       argument(:since, :utc_datetime, allow_nil?: false)
       filter(expr(inserted_at >= ^arg(:since)))
     end
+
+    read :all_results do
+      prepare build(sort: [inserted_at: :desc])
+    end
   end
 end
