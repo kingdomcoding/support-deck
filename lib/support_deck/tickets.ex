@@ -41,6 +41,7 @@ defmodule SupportDeck.Tickets do
       )
 
       define(:list_breaching_sla, action: :breaching_sla)
+      define(:list_approaching_sla, action: :approaching_sla)
     end
 
     resource SupportDeck.Tickets.TicketActivity do

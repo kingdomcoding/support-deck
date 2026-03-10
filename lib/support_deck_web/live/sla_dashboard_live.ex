@@ -13,6 +13,12 @@ defmodule SupportDeckWeb.SLADashboardLive do
         _ -> []
       end
 
+    approaching =
+      case SupportDeck.Tickets.list_approaching_sla() do
+        {:ok, tickets} -> tickets
+        _ -> []
+      end
+
     policies =
       case SupportDeck.SLADomain.list_all_policies() do
         {:ok, p} -> p
@@ -24,6 +30,7 @@ defmodule SupportDeckWeb.SLADashboardLive do
      |> assign(:page_title, "SLA Dashboard")
      |> assign(:current_path, ~p"/sla")
      |> assign(:breaching_tickets, breaching)
+     |> assign(:approaching_tickets, approaching)
      |> assign(:policies, policies)}
   end
 
@@ -35,7 +42,13 @@ defmodule SupportDeckWeb.SLADashboardLive do
         _ -> []
       end
 
-    {:noreply, assign(socket, :breaching_tickets, breaching)}
+    approaching =
+      case SupportDeck.Tickets.list_approaching_sla() do
+        {:ok, tickets} -> tickets
+        _ -> []
+      end
+
+    {:noreply, socket |> assign(:breaching_tickets, breaching) |> assign(:approaching_tickets, approaching)}
   end
 
   def handle_info(_, socket), do: {:noreply, socket}
@@ -58,10 +71,14 @@ defmodule SupportDeckWeb.SLADashboardLive do
         </:actions>
       </.page_header>
 
-      <div data-tour="sla-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div data-tour="sla-stats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-base-100 rounded-lg border border-base-300 p-4">
           <p class="text-sm text-base-content/60">Breaching Tickets</p>
           <p class="text-2xl font-bold text-error">{length(@breaching_tickets)}</p>
+        </div>
+        <div class="bg-base-100 rounded-lg border border-base-300 p-4">
+          <p class="text-sm text-base-content/60">Approaching Breach</p>
+          <p class="text-2xl font-bold text-warning">{length(@approaching_tickets)}</p>
         </div>
         <div class="bg-base-100 rounded-lg border border-base-300 p-4">
           <p class="text-sm text-base-content/60">Active Policies</p>
@@ -72,6 +89,48 @@ defmodule SupportDeckWeb.SLADashboardLive do
         <div class="bg-base-100 rounded-lg border border-base-300 p-4">
           <p class="text-sm text-base-content/60">Total Policies</p>
           <p class="text-2xl font-bold text-base-content/60">{length(@policies)}</p>
+        </div>
+      </div>
+
+      <div :if={@approaching_tickets != []} class="mb-8">
+        <h2 class="text-xl font-semibold text-warning mb-4">Approaching Breach</h2>
+        <div class="bg-base-100 rounded-lg border border-warning/30 overflow-hidden">
+          <table class="min-w-full divide-y divide-base-300">
+            <thead class="bg-warning/10">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                  Subject
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                  Severity
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                  Tier
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                  Status
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-base-content/60 uppercase">
+                  Time Until Breach
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-base-300">
+              <tr
+                :for={ticket <- @approaching_tickets}
+                class="hover:bg-base-200 cursor-pointer"
+                phx-click={JS.navigate(~p"/tickets/#{ticket.id}?from=/sla")}
+              >
+                <td class="px-4 py-3">
+                  <span class="text-primary font-medium text-sm">{ticket.subject}</span>
+                </td>
+                <td class="px-4 py-3 text-sm text-base-content/60">{ticket.severity}</td>
+                <td class="px-4 py-3 text-sm text-base-content/60">{ticket.subscription_tier}</td>
+                <td class="px-4 py-3 text-sm text-base-content/60">{ticket.state}</td>
+                <td class="px-4 py-3 text-sm text-warning font-medium">{time_until_breach(ticket)}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -127,6 +186,22 @@ defmodule SupportDeckWeb.SLADashboardLive do
       </div>
     </div>
     """
+  end
+
+  defp time_until_breach(ticket) do
+    case ticket.sla_deadline do
+      nil ->
+        "N/A"
+
+      deadline ->
+        diff = DateTime.diff(deadline, DateTime.utc_now(), :minute)
+
+        cond do
+          diff <= 0 -> "Imminent"
+          diff < 60 -> "#{diff}m"
+          true -> "#{div(diff, 60)}h #{rem(diff, 60)}m"
+        end
+    end
   end
 
   defp time_since_breach(ticket) do

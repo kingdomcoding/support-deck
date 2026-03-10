@@ -459,6 +459,19 @@ defmodule SupportDeck.Tickets.Ticket do
       )
     end
 
+    read :approaching_sla do
+      argument(:minutes, :integer, default: 15)
+
+      filter(
+        expr(
+          state not in [:resolved, :closed] and
+            not is_nil(sla_deadline) and
+            sla_deadline > now() and
+            sla_deadline <= fragment("NOW() + (? || ' minutes')::interval", ^arg(:minutes))
+        )
+      )
+    end
+
     read :for_auto_close do
       description("Resolved tickets older than 48 hours.")
 
