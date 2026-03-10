@@ -181,11 +181,19 @@ defmodule SupportDeckWeb.IntegrationHealthLive do
           {:error, "Invalid JSON payload"}
       end
 
-    {:noreply,
-     socket
-     |> update(:webhook_results, &Map.put(&1, source_atom, result))
-     |> load_rules_and_linear_ticket()
-     |> load_webhook_events()}
+    socket =
+      socket
+      |> update(:webhook_results, &Map.put(&1, source_atom, result))
+      |> load_rules_and_linear_ticket()
+      |> load_webhook_events()
+
+    socket =
+      case result do
+        {:ok, _} -> push_event(socket, "tour:action_complete", %{action: "webhook_sent"})
+        _ -> socket
+      end
+
+    {:noreply, socket}
   end
 
   @impl true

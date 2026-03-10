@@ -42,12 +42,26 @@ const TOUR = [
       },
       {
         element: "[data-tour='create-ticket-btn']",
+        interactive: true,
+        waitFor: "create_modal_opened",
         popover: {
           title: "Create a Ticket",
           description:
-            "Try creating one \u2014 it\u2019ll appear instantly via PubSub and get picked up by the AI triage worker and rule engine.",
+            "Click this button to open the ticket form. Try creating one \u2014 it\u2019ll appear instantly via PubSub.",
           side: "bottom",
           align: "end",
+        },
+      },
+      {
+        element: "[data-tour='create-form']",
+        interactive: true,
+        waitFor: "ticket_created",
+        popover: {
+          title: "Submit Your Ticket",
+          description:
+            "Fill in the details and submit. The ticket will get picked up by the AI triage worker and rule engine automatically.",
+          side: "left",
+          align: "start",
         },
       },
     ],
@@ -97,10 +111,12 @@ const TOUR = [
       },
       {
         element: "[data-tour='webhook-test']",
+        interactive: true,
+        waitFor: "webhook_sent",
         popover: {
-          title: "Simulate Inbound Webhooks",
+          title: "Send a Test Webhook",
           description:
-            "Send test payloads to Front, Slack, or Linear webhook endpoints. The worker parses them and creates or updates tickets, triggering rules along the way.",
+            'Click "Simulate Front Webhook" below. It\u2019ll create a real ticket from the payload and trigger any matching rules.',
           side: "top",
           align: "center",
         },
@@ -119,17 +135,25 @@ const TourHook = {
   mounted() {
     this.driverInstance = null
     this.navigating = false
+    this.waitingFor = null
+    this.skipTimer = null
 
     const btn = this.el.querySelector("#start-tour-btn")
     if (btn) btn.addEventListener("click", () => this.runPage(0, 0))
 
-    const savedPage = sessionStorage.getItem("tour_page")
-    const savedStep = sessionStorage.getItem("tour_step")
-    if (savedPage !== null) {
-      setTimeout(
-        () => this.runPage(parseInt(savedPage), parseInt(savedStep || "0")),
-        300,
-      )
+    this.handleEvent("tour:action_complete", ({ action }) => {
+      if (this.driverInstance && this.waitingFor === action) {
+        this.waitingFor = null
+        this.clearSkipTimer()
+        setTimeout(() => {
+          if (this.driverInstance) this.driverInstance.moveNext()
+        }, 600)
+      }
+    })
+
+    const state = this.loadState()
+    if (state && state.active) {
+      setTimeout(() => this.runPage(state.pageIndex, state.stepIndex), 300)
     } else if (window.location.search.includes("tour=1")) {
       setTimeout(() => this.runPage(0, 0), 500)
     } else if (!localStorage.getItem("supportdeck_toured")) {
@@ -142,8 +166,7 @@ const TourHook = {
     if (!page) return this.finish()
 
     if (window.location.pathname !== page.path) {
-      sessionStorage.setItem("tour_page", pageIndex.toString())
-      sessionStorage.setItem("tour_step", localStep.toString())
+      this.saveState({ pageIndex, stepIndex: localStep, active: true })
       this.navigating = true
       this.navigateTo(page.path)
       return
@@ -164,20 +187,40 @@ const TourHook = {
       }))
 
     if (steps.length === 0) {
-      this.runPage(pageIndex + 1, 0)
-      return
+      return this.runPage(pageIndex + 1, 0)
     }
 
     const safeLocal = Math.min(localStep, steps.length - 1)
 
     this.driverInstance = driver({
-      disableActiveInteraction: true,
+      disableActiveInteraction: false,
       overlayColor: "rgba(0, 0, 0, 0.5)",
       stagePadding: 12,
       stageRadius: 8,
       popoverClass: "tour-popover",
       showProgress: false,
       steps,
+
+      onHighlightStarted: (_element, step) => {
+        this.clearSkipTimer()
+        this.waitingFor = null
+
+        requestAnimationFrame(() => {
+          const popover = document.querySelector(".driver-popover")
+          if (popover) {
+            popover.classList.toggle("tour-interactive", !!step.interactive)
+          }
+
+          if (step.interactive) {
+            this.waitingFor = step.waitFor
+            this.startSkipTimer()
+          } else {
+            const active = document.querySelector(".driver-active-element")
+            if (active) active.style.pointerEvents = "none"
+          }
+        })
+      },
+
       onNextClick: () => {
         const idx = this.driverInstance.getActiveIndex()
         if (idx >= steps.length - 1) {
@@ -192,6 +235,7 @@ const TourHook = {
           this.driverInstance.moveNext()
         }
       },
+
       onPrevClick: () => {
         const idx = this.driverInstance.getActiveIndex()
         if (idx === 0) {
@@ -207,6 +251,7 @@ const TourHook = {
           this.driverInstance.movePrevious()
         }
       },
+
       onCloseClick: () => {
         this.driverInstance.destroy()
         this.driverInstance = null
@@ -217,6 +262,49 @@ const TourHook = {
     this.driverInstance.drive(safeLocal)
   },
 
+  startSkipTimer() {
+    this.skipTimer = setTimeout(() => {
+      const footer = document.querySelector(".driver-popover-footer")
+      if (!footer || footer.querySelector(".tour-skip")) return
+
+      const btn = document.createElement("button")
+      btn.textContent = "Skip \u2192"
+      btn.className = "tour-skip"
+      btn.addEventListener("click", () => {
+        if (this.driverInstance) this.driverInstance.moveNext()
+      })
+      footer.appendChild(btn)
+    }, 8000)
+  },
+
+  clearSkipTimer() {
+    if (this.skipTimer) {
+      clearTimeout(this.skipTimer)
+      this.skipTimer = null
+    }
+    const existing = document.querySelector(".tour-skip")
+    if (existing) existing.remove()
+  },
+
+  saveState({ pageIndex, stepIndex, active }) {
+    sessionStorage.setItem(
+      "tour_state",
+      JSON.stringify({ pageIndex, stepIndex, active }),
+    )
+  },
+
+  loadState() {
+    try {
+      return JSON.parse(sessionStorage.getItem("tour_state"))
+    } catch {
+      return null
+    }
+  },
+
+  clearState() {
+    sessionStorage.removeItem("tour_state")
+  },
+
   navigateTo(path) {
     const link = document.querySelector(`nav a[href="${path}"]`)
     if (link) link.click()
@@ -224,19 +312,19 @@ const TourHook = {
   },
 
   finish() {
-    sessionStorage.removeItem("tour_page")
-    sessionStorage.removeItem("tour_step")
+    this.clearSkipTimer()
+    this.clearState()
     localStorage.setItem("supportdeck_toured", "true")
   },
 
   destroyed() {
+    this.clearSkipTimer()
     if (this.driverInstance) {
       this.driverInstance.destroy()
       this.driverInstance = null
     }
     if (!this.navigating) {
-      sessionStorage.removeItem("tour_page")
-      sessionStorage.removeItem("tour_step")
+      this.clearState()
     }
   },
 }

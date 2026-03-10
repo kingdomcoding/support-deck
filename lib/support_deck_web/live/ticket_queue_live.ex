@@ -51,7 +51,10 @@ defmodule SupportDeckWeb.TicketQueueLive do
   end
 
   def handle_event("new_ticket", _, socket) do
-    {:noreply, assign(socket, :show_create, true)}
+    {:noreply,
+     socket
+     |> assign(:show_create, true)
+     |> push_event("tour:action_complete", %{action: "create_modal_opened"})}
   end
 
   def handle_event("close_create", _, socket) do
@@ -89,6 +92,7 @@ defmodule SupportDeckWeb.TicketQueueLive do
          socket
          |> assign(:show_create, false)
          |> put_flash(:info, "Ticket created")
+         |> push_event("tour:action_complete", %{action: "ticket_created"})
          |> load_tickets()}
 
       {:error, err} ->
@@ -298,7 +302,7 @@ defmodule SupportDeckWeb.TicketQueueLive do
               <.icon name="hero-x-mark" class="size-5" />
             </button>
           </div>
-          <form phx-submit="create_ticket" class="space-y-3">
+          <form data-tour="create-form" phx-submit="create_ticket" class="space-y-3">
             <div>
               <label class="text-xs font-medium text-base-content/60 mb-1 block">Subject</label>
               <input

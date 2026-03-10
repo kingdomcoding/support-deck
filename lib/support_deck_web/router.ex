@@ -38,7 +38,6 @@ defmodule SupportDeckWeb.Router do
       pipe_through :browser
 
       live "/", OverviewLive, :index
-      live "/tour", GuidedTourLive, :index
       live "/tickets", TicketQueueLive, :index
       live "/tickets/:id", TicketDetailLive, :show
       live "/sla", SLADashboardLive, :index
