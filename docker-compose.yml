@@ -1,46 +1,24 @@
 services:
-  postgres:
-    image: pgvector/pgvector:pg16
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: support_deck_prod
-    ports:
-      - "127.0.0.1:5433:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   app:
     build: .
-    restart: always
-    depends_on:
-      postgres:
-        condition: service_healthy
+    restart: unless-stopped
     ports:
       - "127.0.0.1:4500:4500"
     networks:
-      - default
+      - shared_pg
       - npm_default
     environment:
-      DATABASE_URL: ecto://postgres:postgres@postgres/support_deck_prod
+      DATABASE_URL: ecto://support_deck:support_deck@shared-postgres/support_deck_prod
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
       PHX_HOST: ${PHX_HOST:-supportdeck.josboxoffice.com}
       PHX_SERVER: "true"
       PORT: "4500"
-      POSTGRES_HOST: postgres
       CREDENTIAL_VAULT_KEY: ${CREDENTIAL_VAULT_KEY}
     command: >
       sh -c "bin/migrate && bin/support_deck start"
 
-volumes:
-  pgdata:
-
 networks:
+  shared_pg:
+    external: true
   npm_default:
     external: true
